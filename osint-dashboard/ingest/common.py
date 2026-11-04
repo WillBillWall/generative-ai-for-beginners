@@ -25,6 +25,11 @@ def taxonomy() -> dict:
     return yaml.safe_load((ROOT / "taxonomy.yaml").read_text())
 
 
+def sides_of(obs: dict) -> list[str]:
+    """Rows are per side: a report about both sides belongs to the Russian and the Ukrainian row."""
+    return ["RU", "UA"] if obs["side"] == "both" else [obs["side"]]
+
+
 def quarter_of(d: date | str) -> str:
     if isinstance(d, str):
         d = date.fromisoformat(d[:10])

@@ -13,10 +13,13 @@ MODEL = "claude-opus-5-5"
 
 SYSTEM = """You are an OSINT analyst coding military-analysis reports into a fixed taxonomy.
 Record only tactical observations the text states or clearly assesses: who used which tactic,
-where, when, and whether it is new, spreading, dominant, countered or declining.
+where, when, how widely it is used, and whether the other side has countered it.
 Paraphrase in at most 280 characters; never copy long passages.
 Use '' for unknown sector or unit. Skip anything that does not fit the taxonomy.
-Taxonomy (category -> subtypes) and phases:
+Stages describe how widely the tactic is used and run in order: emerging, spreading,
+widespread, fading (resurgent = back after fading). Set counter_reported to "yes" when the
+text says the other side has found an effective answer; that is not a stage.
+Taxonomy (category -> subtypes) and stages:
 {taxonomy}"""
 
 
@@ -27,7 +30,7 @@ def _schema() -> dict:
         "type": "object",
         "additionalProperties": False,
         "required": ["date", "side", "sector", "unit", "tactic_category",
-                     "tactic_subtype", "phase", "summary", "confidence"],
+                     "tactic_subtype", "stage", "counter_reported", "summary", "confidence"],
         "properties": {
             "date": {"type": "string", "description": "YYYY-MM-DD the observation refers to"},
             "side": {"enum": ["RU", "UA", "both"]},
@@ -35,7 +38,8 @@ def _schema() -> dict:
             "unit": {"type": "string"},
             "tactic_category": {"enum": sorted(tax["categories"])},
             "tactic_subtype": {"enum": subtypes},
-            "phase": {"enum": sorted(tax["phases"])},
+            "stage": {"enum": list(tax["stages"])},
+            "counter_reported": {"enum": ["yes", "no"]},
             "summary": {"type": "string"},
             "confidence": {"enum": ["high", "medium", "low"]},
         },
@@ -54,7 +58,7 @@ def extract_observations(text: str, *, source_org: str, source_title: str, sourc
     client = client or anthropic.Anthropic()
     tax = taxonomy()
     tax_text = json.dumps({"categories": {k: list(v["subtypes"]) for k, v in tax["categories"].items()},
-                           "phases": list(tax["phases"])})
+                           "stages": list(tax["stages"])})
     response = client.beta.messages.create(
         model=MODEL,
         max_tokens=16000,

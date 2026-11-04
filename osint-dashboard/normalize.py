@@ -21,7 +21,7 @@ from pathlib import Path
 import jsonschema
 
 from ingest import losses, territory, trends
-from ingest.common import DATA, PROCESSED, SCHEMA, SEED, quarter_of, taxonomy
+from ingest.common import DATA, PROCESSED, SCHEMA, SEED, quarter_of, sides_of, taxonomy
 
 EXTRACTED = DATA / "extracted"
 # RUSI and ISW are analytic sources: their rows are expert assessments that go on
@@ -52,8 +52,8 @@ def validate_observation(row: dict) -> dict:
         errors.append(f"unknown category {row['tactic_category']!r}")
     elif row["tactic_subtype"] not in cats[row["tactic_category"]]["subtypes"]:
         errors.append(f"subtype {row['tactic_subtype']!r} not in {row['tactic_category']}")
-    if row["phase"] not in taxonomy()["phases"]:
-        errors.append(f"unknown phase {row['phase']!r}")
+    if row["stage"] not in taxonomy()["stages"]:
+        errors.append(f"unknown stage {row['stage']!r}")
     if errors:
         raise ValidationError(f"{row.get('id') or '?'}: " + "; ".join(errors))
     return row
@@ -80,7 +80,37 @@ def load_observations() -> list[dict]:
             continue
         seen.add(row["id"])
         out.append(validate_observation(row))
-    return sorted(out, key=lambda r: (r["date"], r["id"]))
+    out = sorted(out, key=lambda r: (r["date"], r["id"]))
+    check_stage_order(out)
+    return out
+
+
+STAGE_RANK = {"emerging": 0, "spreading": 1, "widespread": 2, "fading": 3}
+
+
+def check_stage_order(rows: list[dict]) -> None:
+    """Within one row (tactic + side) and one sector, stages only move forward.
+
+    A lower stage than the previous report is allowed only when it is
+    `resurgent` (after fading) or when the report is about a different sector,
+    which is a new place where the tactic is starting again.
+    """
+    last: dict[tuple[str, str], dict] = {}
+    problems = []
+    for r, side in ((r, s) for r in rows for s in sides_of(r)):
+        key = (r["tactic_subtype"], side)
+        prev = last.get(key)
+        if prev:
+            if r["stage"] == "resurgent" and prev["stage"] not in ("fading", "resurgent"):
+                problems.append(f"{r['id']}: 'resurgent' must follow 'fading', not {prev['stage']!r}")
+            same_place = r["sector"] == prev["sector"]
+            if (same_place and r["stage"] in STAGE_RANK and prev["stage"] in STAGE_RANK
+                    and STAGE_RANK[r["stage"]] < STAGE_RANK[prev["stage"]]):
+                problems.append(f"{r['id']}: stage went back from {prev['stage']!r} ({prev['id']}) to "
+                                f"{r['stage']!r} in the same sector; use 'resurgent' or a sector")
+        last[key] = r
+    if problems:
+        raise ValidationError("stage order: " + " | ".join(problems))
 
 
 def tactic_shift(quarterly: list[dict]) -> list[dict]:

@@ -1,12 +1,12 @@
 equipment_class,month,rate_before,rate_after,trend_before_pct_month,trend_after_pct_month,nearby_events,nearby
-tank,2023-09,7.26,8.5,8.5,-1.3,1,2023-09 Armored / mechanized assault (countered)
-tank,2025-05,7.77,4.45,-0.1,-10.0,6,2025-04 Drone used to destroy drones (emerging); 2025-04 Motorcycle / light vehicle assaults (scaling); 2025-05 Fiber-optic-guided FPV (jam-resistant) (scaling); 2025-06 Radio-frequency jamming of drones (countered)
-afv,2022-12,12.9,6.55,6.9,2.6,2,2022-11 Armored / mechanized assault (declining); 2022-11 Drone-directed artillery fire (scaling)
-afv,2023-10,12.67,26.45,11.6,2.3,1,2023-09 Armored / mechanized assault (countered)
-afv,2025-05,17.8,9.65,-8.1,-13.4,6,2025-04 Drone used to destroy drones (emerging); 2025-04 Motorcycle / light vehicle assaults (scaling); 2025-05 Fiber-optic-guided FPV (jam-resistant) (scaling); 2025-06 Radio-frequency jamming of drones (countered)
-artillery,2022-11,10.87,5.8,15.0,13.8,2,2022-11 Armored / mechanized assault (declining); 2022-11 Drone-directed artillery fire (scaling)
-artillery,2023-05,7.97,17.61,13.8,8.4,4,"2023-05 Radio-frequency jamming of drones (scaling); 2023-05 Tube and rocket artillery (dominant); 2023-05 Stratified, attritional infantry assaults (scaling); 2023-05 Thermal/visual camouflage against sensors (emerging)"
-uav,2026-01,381.71,717.55,14.5,21.4,4,2025-11 Drones loitering or perched on supply routes (emerging); 2025-11 Small dismounted groups infiltrating (dominant); 2026-01 Drone-saturated zone behind the line of contact (countered); 2026-03 Strikes on drone units' bases and command (scaling)
-vehicles,2023-05,10.7,12.52,-0.5,14.9,4,"2023-05 Radio-frequency jamming of drones (scaling); 2023-05 Tube and rocket artillery (dominant); 2023-05 Stratified, attritional infantry assaults (scaling); 2023-05 Thermal/visual camouflage against sensors (emerging)"
-vehicles,2025-02,94.39,122.93,7.0,-3.0,7,"2024-12 Assault conducted without infantry (emerging); 2025-01 Fiber-optic-guided FPV (jam-resistant) (emerging); 2025-02 Assault conducted without infantry (scaling); 2025-02 Stratified, attritional infantry assaults (dominant)"
-vehicles,2025-09,112.35,97.87,-2.7,10.0,5,2025-06 Radio-frequency jamming of drones (countered); 2025-07 Motorcycle / light vehicle assaults (dominant); 2025-08 Targeting drone crews and their command posts (scaling); 2025-11 Drones loitering or perched on supply routes (emerging)
+tank,2023-09,7.26,8.5,8.5,-1.3,1,2023-09 Armored / mechanized assault (widespread)
+tank,2025-05,7.77,4.45,-0.1,-10.0,6,2025-04 Drone used to destroy drones (emerging); 2025-04 Motorcycle / light vehicle assaults (spreading); 2025-05 Fiber-optic-guided FPV (jam-resistant) (spreading); 2025-06 Radio-frequency jamming of drones (widespread)
+afv,2022-12,12.9,6.55,6.9,2.6,2,2022-11 Armored / mechanized assault (fading); 2022-11 Drone-directed artillery fire (spreading)
+afv,2023-10,12.67,26.45,11.6,2.3,1,2023-09 Armored / mechanized assault (widespread)
+afv,2025-05,17.8,9.65,-8.1,-13.4,6,2025-04 Drone used to destroy drones (emerging); 2025-04 Motorcycle / light vehicle assaults (spreading); 2025-05 Fiber-optic-guided FPV (jam-resistant) (spreading); 2025-06 Radio-frequency jamming of drones (widespread)
+artillery,2022-11,10.87,5.8,15.0,13.8,2,2022-11 Armored / mechanized assault (fading); 2022-11 Drone-directed artillery fire (spreading)
+artillery,2023-05,7.97,17.61,13.8,8.4,4,"2023-05 Radio-frequency jamming of drones (spreading); 2023-05 Tube and rocket artillery (widespread); 2023-05 Stratified, attritional infantry assaults (spreading); 2023-05 Thermal/visual camouflage against sensors (emerging)"
+uav,2026-01,381.71,717.55,14.5,21.4,4,2025-11 Drones loitering or perched on supply routes (emerging); 2025-11 Small dismounted groups infiltrating (widespread); 2026-01 Drone-saturated zone behind the line of contact (widespread); 2026-03 Strikes on drone units' bases and command (spreading)
+vehicles,2023-05,10.7,12.52,-0.5,14.9,4,"2023-05 Radio-frequency jamming of drones (spreading); 2023-05 Tube and rocket artillery (widespread); 2023-05 Stratified, attritional infantry assaults (spreading); 2023-05 Thermal/visual camouflage against sensors (emerging)"
+vehicles,2025-02,94.39,122.93,7.0,-3.0,7,"2024-12 Assault conducted without infantry (emerging); 2025-01 Fiber-optic-guided FPV (jam-resistant) (emerging); 2025-02 Assault conducted without infantry (spreading); 2025-02 Stratified, attritional infantry assaults (widespread)"
+vehicles,2025-09,112.35,97.87,-2.7,10.0,5,2025-06 Radio-frequency jamming of drones (widespread); 2025-07 Motorcycle / light vehicle assaults (widespread); 2025-08 Targeting drone crews and their command posts (spreading); 2025-11 Drones loitering or perched on supply routes (emerging)

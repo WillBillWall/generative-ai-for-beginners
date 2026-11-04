@@ -51,14 +51,16 @@ categories:
     subtypes:
       dedicated_drone_branch: Separate drone service or elite drone center
 
-# Lifecycle of a tactic as observed in a source at a given date.
-phases:
+# How widely a tactic is used, in order. A row (one tactic, one side) may only
+# move forward within the same sector; `resurgent` marks a return after fading.
+# Whether the other side has found an answer is a separate yes/no field,
+# `counter_reported`, not a stage.
+stages:
   emerging: First reported or experimental use
-  scaling: Spreading across units or sectors
-  dominant: Defining feature of the fighting
-  countered: Effective counter-measures reported
-  declining: Use falling off
-
+  spreading: Being adopted by more units or sectors
+  widespread: In common use across the front
+  fading: Use falling off
+  resurgent: Back in use after fading
 # Equipment classes used for loss data. Every source maps onto these.
 equipment_classes:
   tank: Tanks

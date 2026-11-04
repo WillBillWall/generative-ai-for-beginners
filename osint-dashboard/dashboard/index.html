@@ -27,6 +27,7 @@
   .ut-mini-tall { min-height: 9rem; }
   .ut-chart-tall { min-height: 18rem; }
   .ut-legend-left { margin-left: 0; }
+  .ut-sw-counter { background: transparent; border: 3px solid var(--color-bad); width: 0.75rem; height: 0.75rem; }
   .ut-sw-bar { width: 1.1rem; height: 0.5rem; border-radius: 2px; }
   .ut svg .ut-cat { fill: var(--color-fg); font-weight: 600; }
   .ut-claims { position: relative; min-height: 17rem; }
@@ -140,7 +141,7 @@
 
     <div class="ut-card">
       <h3>How quickly tactics spread and were countered</h3>
-      <p class="ut-note">Each row is one tactic, starting when it was first reported. The blue bar runs to the first report that it was spreading or had become dominant. The amber bar runs to the first report that it had been countered. Months are written beside each bar. Only tactics with a later report are shown; this rests on 33 observations, so read it as indicative.</p>
+      <p class="ut-note">Each row is one side's use of one tactic, starting when it was first reported. The blue bar runs to the first report that it had moved up a stage (emerging to spreading, or spreading to widespread). The amber bar runs to the first report that the other side had found an answer. Months are written beside each bar. Only tactics with a later report are shown; this rests on 33 observations, so read it as indicative.</p>
       <div class="ut-legend ut-legend-left">
         <span><i class="ut-sw ut-sw-bar" data-adapt-swatch="spread"></i>Time to spread</span>
         <span><i class="ut-sw ut-sw-bar" data-adapt-swatch="counter"></i>Time to be countered</span>
@@ -148,10 +149,10 @@
       <div class="ut-chart" data-draw="adapt" data-source="adaptation"></div>
       <p class="ut-note" data-draw="adapt-medians" data-source="adaptation_by_year">—</p>
       <div class="ut-tablebox">
-        <table class="ut-table" data-source="adaptation" data-row-key="tactic_subtype">
+        <table class="ut-table" data-source="adaptation" data-row-key="row_key">
           <thead><tr>
             <th data-field="subtype_label">Tactic</th>
-            <th data-field="sides">Side</th>
+            <th data-field="side">Side</th>
             <th data-field="first_seen">First seen</th>
             <th data-field="months_to_spread">Months to spread</th>
             <th data-field="months_to_counter">Months to counter</th>
@@ -176,14 +177,15 @@
         <button type="button" class="ut-chip" data-src="ISW" aria-pressed="false">ISW</button>
         <button type="button" class="ut-chip" data-src="other" aria-pressed="false">News and others</button>
         <div class="ut-legend">
-          <span><i class="ut-sw" data-phase-swatch="0"></i>Emerging</span>
-          <span><i class="ut-sw" data-phase-swatch="1"></i>Scaling</span>
-          <span><i class="ut-sw" data-phase-swatch="2"></i>Dominant</span>
-          <span><i class="ut-sw" data-phase-swatch="3"></i>Countered</span>
-          <span><i class="ut-sw" data-phase-swatch="4"></i>Declining</span>
+          <span><i class="ut-sw" data-stage-swatch="0"></i>Emerging</span>
+          <span><i class="ut-sw" data-stage-swatch="1"></i>Spreading</span>
+          <span><i class="ut-sw" data-stage-swatch="2"></i>Widespread</span>
+          <span><i class="ut-sw" data-stage-swatch="3"></i>Fading</span>
+          <span><i class="ut-sw" data-stage-swatch="4"></i>Resurgent</span>
+          <span><i class="ut-sw ut-sw-counter"></i>Counter reported</span>
         </div>
       </div>
-      <p class="ut-note">Each row is one tactic, grouped by type and tagged with the side using it. The color shows the stage it was reported at, lasting until the next report; a faded end means nothing newer has been reported. Markers are the reports themselves. RUSI and ISW items are expert assessments that explain how and why tactics change; they place tactics on the timeline and never feed the loss counts. News items are reports. Hollow markers were read in coverage of the source rather than the source itself. Select a marker for its summary and link.</p>
+      <p class="ut-note">Each row is one side's use of one tactic, grouped by type. The color shows how widely it was being used, in a fixed order: emerging, spreading, widespread, fading, with resurgent for a comeback. Each color lasts until the next report, and a faded end means nothing newer has been reported. A row only steps back to an earlier stage when a report is about a new sector, where the tactic is starting again. A red ring means that report said the other side had found an answer to it; that is separate from how widely it is used. A report about both sides appears in both rows. Markers are the reports themselves. RUSI and ISW items are expert assessments that explain how and why tactics change; they place tactics on the timeline and never feed the loss counts. News items are reports. Hollow markers were read in coverage of the source rather than the source itself. Select a marker for its summary and link.</p>
       <div class="ut-timeline" data-draw="timeline" data-source="observations"></div>
       <div class="ut-detail" data-draw="detail" data-source="observations">—</div>
     </div>
@@ -212,7 +214,8 @@
             <th data-field="date">Date</th>
             <th data-field="side">Side</th>
             <th data-field="subtype_label">Tactic</th>
-            <th data-field="phase">Phase</th>
+            <th data-field="stage">Stage</th>
+            <th data-field="counter_reported" class="ut-hide-narrow">Counter reported</th>
             <th data-field="summary">What the source says</th>
             <th data-field="source_title" class="ut-hide-narrow">Source</th>
             <th data-field="evidence" class="ut-hide-narrow">Evidence</th>
@@ -349,13 +352,17 @@
 
     // Latest report per tactic within the last 12 months
     const cutoff = new Date(asOf); cutoff.setUTCFullYear(cutoff.getUTCFullYear() - 1);
+    // latest report per row (tactic + side); a report about both sides counts for each
     const latest = new Map();
-    for (const o of ob.data.slice().sort((a, b) => a.date.localeCompare(b.date))) latest.set(o.tactic_subtype, o);
+    for (const o of ob.data.slice().sort((a, b) => a.date.localeCompare(b.date))) {
+      for (const lane of (o.side === 'both' ? ['RU', 'UA'] : [o.side])) latest.set(`${o.tactic_subtype}|${lane}`, { ...o, lane });
+    }
     const recent = [...latest.values()].filter((o) => new Date(o.date) >= cutoff);
-    const rank = { dominant: 0, scaling: 1, emerging: 2 };
-    const active = (cats) => recent.filter((o) => cats.includes(o.tactic_category) && o.phase in rank)
-      .sort((a, b) => rank[a.phase] - rank[b.phase] || b.date.localeCompare(a.date));
-    const countered = recent.filter((o) => o.phase === 'countered' || o.phase === 'declining').sort((a, b) => b.date.localeCompare(a.date));
+    const rank = { widespread: 0, resurgent: 0, spreading: 1, emerging: 2 };
+    const active = (cats, lane) => recent.filter((o) => o.lane === lane && cats.includes(o.tactic_category) && o.stage in rank)
+      .sort((a, b) => rank[a.stage] - rank[b.stage] || b.date.localeCompare(a.date));
+    const countered = recent.filter((o) => o.counter_reported === 'yes').sort((a, b) => b.date.localeCompare(a.date));
+    const whose = (o) => (o.lane === 'RU' ? "Russia's" : "Ukraine's");
 
     // 1. Drones vs armor
     const uavTrend = trend(n.uav_index, n.uav_index_3m_ago);
@@ -365,8 +372,8 @@
       + (n.tank_index < 0.5 ? ', a sign that armor is being kept away from the front.' : '.');
 
     // 2. How Russia attacks now
-    const assault = active(['assault']).filter((o) => o.side === 'RU');
-    const support = active(['logistics_interdiction', 'fires', 'uas_strike']).filter((o) => o.side !== 'UA');
+    const assault = active(['assault'], 'RU');
+    const support = active(['logistics_interdiction', 'fires', 'uas_strike'], 'RU');
     const lead = assault.slice().sort((a, b) => b.date.localeCompare(a.date))[0];
     const s2 = assault.length
       ? `Russian attacks currently rely on ${list(assault.slice(0, 2).map((o) => o.subtype_phrase))}`
@@ -376,11 +383,10 @@
     function o2place(o) { return o.sector && o.sector !== 'Theatre-wide' ? o.sector : 'across the front'; }
 
     // 3. Counter-drone and counter-adaptation
-    const counters = recent.filter((o) => o.side === 'UA' && o.phase in rank)
-      .sort((a, b) => rank[a.phase] - rank[b.phase] || b.date.localeCompare(a.date));
+    const counters = active(['ew_counter_uas', 'ugv', 'uas_strike', 'uas_isr', 'logistics_interdiction', 'force_structure', 'fires', 'assault'], 'UA');
     const lastCounter = countered[0];
     const s3 = (counters.length ? `On Ukraine's side, the most recent reports point to ${list(counters.slice(0, 3).map((o) => o.subtype_phrase))}. ` : '')
-      + (lastCounter ? `The latest tactic reported as countered is ${lastCounter.subtype_phrase} (${month(lastCounter.date)}). ` : '')
+      + (lastCounter ? `The most recent counter reported was against ${whose(lastCounter)} ${lastCounter.subtype_phrase} (${month(lastCounter.date)}). ` : '')
       + `Russian logistics-vehicle losses are ${times(n.vehicles_index)} their spring 2022 level, so both sides are fighting over supply lines.`;
 
     // 4. Front line
@@ -402,8 +408,8 @@
   terr('t-terr-date', (r) => d3.utcFormat('%b %-d, %Y')(new Date(r.to_date)));
   summary('t-subtypes', 'subtypes');
 
-  for (const sw of document.querySelectorAll('[data-phase-swatch]')) {
-    sw.style.background = dash.colors[Number(sw.dataset.phaseSwatch)];
+  for (const sw of document.querySelectorAll('[data-stage-swatch]')) {
+    sw.style.background = dash.colors[[0, 1, 2, 4, 5][Number(sw.dataset.stageSwatch)]];
   }
   for (const sw of document.querySelectorAll('[data-adapt-swatch]')) {
     sw.style.background = sw.dataset.adaptSwatch === 'spread' ? dash.colors[0] : dash.colors[3];
@@ -526,7 +532,11 @@
 <script>
   const { fmt0: f0 } = window.utFmt;
   const { tip, placeTip } = window.utTip;
-  const PHASES = ['emerging', 'scaling', 'dominant', 'countered', 'declining'];
+  const STAGES = ['emerging', 'spreading', 'widespread', 'fading', 'resurgent'];
+  const STAGE_COLOR = [0, 1, 2, 4, 5];
+  const stageColor = (st) => dash.colors[STAGE_COLOR[Math.max(0, STAGES.indexOf(st))]];
+  const sidesOf = (o) => (o.side === 'both' ? ['RU', 'UA'] : [o.side]);
+  window.utStage = { STAGES, stageColor, sidesOf };
   const CATEGORY_ORDER = ['uas_strike', 'uas_isr', 'ugv', 'ew_counter_uas', 'assault', 'fires', 'logistics_interdiction', 'force_structure'];
   window.utState = window.utState || { side: 'all', selected: null, query: '' };
   window.utState.src = window.utState.src || 'all';
@@ -555,15 +565,15 @@
     if (s === 'other') return r.source_org !== 'RUSI' && r.source_org !== 'ISW';
     return r.source_org === s;
   };
-  const visible = (rows) => rows.filter((r) => (window.utState.side === 'all' || r.side === window.utState.side || r.side === 'both') && srcOk(r));
 
   dash.draw('timeline', (el) => {
     el.replaceChildren();
     const d = dash.data('observations');
     if (d.status !== 'ok') { el.textContent = '—'; return; }
-    const rows = visible(d.data).map((r) => ({ ...r, t: new Date(r.date) }));
+    const rows = d.data.filter(srcOk).flatMap((r) => sidesOf(r).map((lane) => ({ ...r, lane, t: new Date(r.date) })))
+      .filter((r) => window.utState.side === 'all' || r.lane === window.utState.side);
     const now = new Date();
-    const byLane = d3.group(rows.sort((a, b) => a.t - b.t), (r) => r.tactic_subtype);
+    const byLane = d3.group(rows.sort((a, b) => a.t - b.t), (r) => `${r.tactic_subtype}|${r.lane}`);
     const lanes = [...byLane.values()].sort((a, b) =>
       CATEGORY_ORDER.indexOf(a[0].tactic_category) - CATEGORY_ORDER.indexOf(b[0].tactic_category) || a[0].t - b[0].t);
     // one header row per category, then its tactics
@@ -571,8 +581,7 @@
     let cat = null;
     for (const obs of lanes) {
       if (obs[0].tactic_category !== cat) { cat = obs[0].tactic_category; items.push({ header: obs[0].category_label }); }
-      const sides = [...new Set(obs.map((o) => o.side))].map((s) => (s === 'both' ? 'RU+UA' : s)).join(', ');
-      items.push({ obs, label: obs[0].subtype_label, sides });
+      items.push({ obs, label: obs[0].subtype_label, sides: obs[0].lane === 'RU' ? 'Russia' : 'Ukraine' });
     }
     const W = Math.max(el.clientWidth || 700, 640), lane = 24, m = { t: 22, r: 16, b: 8 };
     const H = m.t + items.length * lane + m.b;
@@ -592,11 +601,11 @@
       .attr('x1', x).attr('x2', x).attr('y1', m.t - 6).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-grid)');
     svg.append('g').selectAll('text').data(x.ticks(d3.utcYear.every(1))).join('text')
       .attr('x', x).attr('y', m.t - 10).attr('text-anchor', 'middle').text(d3.utcFormat('%Y'));
-    const color = (p) => dash.colors[Math.max(0, PHASES.indexOf(p))];
+    const color = stageColor;
     const t = tip(el);
     const show = (ev, r) => {
       t.hidden = false; t.innerHTML = '';
-      const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = `${r.date} · ${r.side} · reported as ${r.phase}`;
+      const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = `${r.date} · ${r.lane === 'RU' ? 'Russia' : 'Ukraine'}${r.side === 'both' ? ' (report covers both sides)' : ''} · ${r.stage}${r.counter_reported === 'yes' ? ' · counter reported' : ''}`;
       const v = document.createElement('div'); v.textContent = r.summary;
       t.append(k, v);
       const [px, py] = d3.pointer(ev, el); placeTip(t, el, px, py);
@@ -609,14 +618,15 @@
         const next = it.obs[j + 1];
         const x0 = x(o.t), x1 = next ? x(next.t) : x(now);
         g.append('rect').attr('x', x0).attr('y', yc - 5).attr('width', Math.max(2, x1 - x0)).attr('height', 10).attr('rx', 2)
-          .attr('fill', color(o.phase)).attr('opacity', next ? 0.9 : 0.35)
+          .attr('fill', color(o.stage)).attr('opacity', next ? 0.9 : 0.35)
           .on('pointerenter', (ev) => show(ev, o)).on('pointerleave', () => { t.hidden = true; });
       });
       g.selectAll('circle').data(it.obs).join('circle')
         .attr('cx', (o) => x(o.t)).attr('cy', yc).attr('r', (o) => (o.id === window.utState.selected ? 7 : 5))
-        .attr('fill', (o) => (o.access === 'secondary' ? 'var(--color-panel)' : color(o.phase)))
-        .attr('stroke', 'var(--color-fg)').attr('stroke-width', 1.5).style('cursor', 'pointer')
-        .attr('tabindex', 0).attr('role', 'button').attr('aria-label', (o) => `${o.date} ${o.subtype_label}, ${o.phase}`)
+        .attr('fill', (o) => (o.access === 'secondary' ? 'var(--color-panel)' : color(o.stage)))
+        .attr('stroke', (o) => (o.counter_reported === 'yes' ? 'var(--color-bad)' : 'var(--color-fg)'))
+        .attr('stroke-width', (o) => (o.counter_reported === 'yes' ? 3 : 1.5)).style('cursor', 'pointer')
+        .attr('tabindex', 0).attr('role', 'button').attr('aria-label', (o) => `${o.date} ${o.subtype_label}, ${o.lane}, ${o.stage}${o.counter_reported === 'yes' ? ', counter reported' : ''}`)
         .on('pointerenter', show).on('pointerleave', () => { t.hidden = true; })
         .on('click keydown', (ev, o) => {
           if (ev.type === 'keydown' && ev.key !== 'Enter' && ev.key !== ' ') return;
@@ -631,7 +641,7 @@
     el.replaceChildren();
     if (!r) { el.textContent = d.status === 'ok' ? 'Select a dot to see the observation.' : '—'; return; }
     const head = document.createElement('div'); head.className = 'ut-tip-k';
-    head.textContent = `${r.date} · ${r.side === 'both' ? 'Both sides' : r.side} · ${r.sector}${r.unit ? ' · ' + r.unit : ''} · ${r.category_label}: ${r.subtype_label} · ${r.phase} · ${r.evidence} · ${r.confidence} confidence`;
+    head.textContent = `${r.date} · ${r.side === 'both' ? 'Both sides' : r.side} · ${r.sector}${r.unit ? ' · ' + r.unit : ''} · ${r.category_label}: ${r.subtype_label} · ${r.stage}${r.counter_reported === 'yes' ? ' · counter reported' : ''} · ${r.evidence} · ${r.confidence} confidence`;
     const body = document.createElement('div'); body.textContent = r.summary;
     const a = document.createElement('a'); a.href = r.source_url; a.target = '_blank'; a.rel = 'noopener';
     a.textContent = `${r.source_org}: ${r.source_title}${r.access === 'secondary' ? ' (via coverage)' : ''}`;
@@ -647,8 +657,8 @@
       .filter((r) => !q || Object.values(r).join(' ').toLowerCase().includes(q));
     for (const r of rows) {
       const tr = document.createElement('tr'); tr.dataset.key = r.id;
-      for (const f of ['date', 'side', 'subtype_label', 'phase', 'summary']) {
-        const td = document.createElement('td'); td.textContent = r[f]; tr.append(td);
+      for (const f of ['date', 'side', 'subtype_label', 'stage', 'counter_reported', 'summary']) {
+        const td = document.createElement('td'); td.textContent = r[f]; if (f === 'counter_reported') td.className = 'ut-hide-narrow'; tr.append(td);
       }
       const src = document.createElement('td'); src.className = 'ut-hide-narrow';
       const a = document.createElement('a'); a.href = r.source_url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = r.source_title;
@@ -731,14 +741,14 @@
     // tactic report ticks on a strip under the axis
     const stripY = H - m.b + 22;
     svg.append('text').attr('x', m.l - 6).attr('y', stripY + 4).attr('text-anchor', 'end').text('Reports');
-    const color = (p) => dash.colors[Math.max(0, ['emerging', 'scaling', 'dominant', 'countered', 'declining'].indexOf(p))];
+    const color = (st) => window.utStage.stageColor(st);
     const t = tip_(el);
     svg.append('g').selectAll('line').data(obs).join('line')
       .attr('x1', (r) => x(new Date(r.date))).attr('x2', (r) => x(new Date(r.date))).attr('y1', stripY - 7).attr('y2', stripY + 7)
-      .attr('stroke', (r) => color(r.phase)).attr('stroke-width', 3).attr('stroke-linecap', 'round')
+      .attr('stroke', (r) => color(r.stage)).attr('stroke-width', 3).attr('stroke-linecap', 'round')
       .on('pointerenter', (ev, r) => {
         t.hidden = false; t.innerHTML = '';
-        const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = `${r.date} · ${r.subtype_label} · ${r.phase}`;
+        const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = `${r.date} · ${r.subtype_label} · ${r.stage}${r.counter_reported === 'yes' ? ' · counter reported' : ''}`;
         const v = document.createElement('div'); v.textContent = r.summary;
         t.append(k, v);
         const [px, py] = d3.pointer(ev, el); place_(t, el, px, py - 60);
@@ -855,7 +865,7 @@
     rows.forEach((r, i) => {
       const tx = lab.append('text').attr('x', 0).attr('y', m.t + i * lane + lane / 2 + 4);
       tx.append('tspan').text(r.subtype_label);
-      tx.append('tspan').attr('dx', 6).text(r.sides.replace('both', 'RU+UA'));
+      tx.append('tspan').attr('dx', 6).text(r.side === 'RU' ? 'Russia' : 'Ukraine');
     });
     let lw = 0; lab.selectAll('text').each(function () { lw = Math.max(lw, this.getComputedTextLength()); });
     const left = Math.min(lw + 14, W * 0.45);
@@ -874,7 +884,7 @@
       const yc = m.t + i * lane + lane / 2;
       const g = svg.append('g');
       const bars = [];
-      if (r.ts) bars.push({ to: r.ts, months: r.months_to_spread, c: dash.colors[0], dy: r.tc ? -4 : 0, what: `spread (${r.spread_phase})`, body: r.spread_summary });
+      if (r.ts) bars.push({ to: r.ts, months: r.months_to_spread, c: dash.colors[0], dy: r.tc ? -4 : 0, what: `became ${r.spread_stage}`, body: r.spread_summary });
       if (r.tc) bars.push({ to: r.tc, months: r.months_to_counter, c: dash.colors[3], dy: r.ts ? 4 : 0, what: 'countered', body: r.counter_summary });
       g.append('circle').attr('cx', x(r.t0)).attr('cy', yc).attr('r', 4).attr('fill', 'var(--color-fg)')
         .on('pointerenter', (ev) => tipFor(ev, `First seen ${r.first_seen}`, r.first_summary)).on('pointerleave', () => { t.hidden = true; });
@@ -899,8 +909,8 @@
     if (d.status !== 'ok') return;
     const has = (v) => v !== '' && v != null;
     for (const r of d.data.filter((r) => has(r.months_to_spread) || has(r.months_to_counter))) {
-      const tr = document.createElement('tr'); tr.dataset.key = r.tactic_subtype;
-      for (const f of ['subtype_label', 'sides', 'first_seen', 'months_to_spread', 'months_to_counter', 'counter_summary']) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.row_key;
+      for (const f of ['subtype_label', 'side', 'first_seen', 'months_to_spread', 'months_to_counter', 'counter_summary']) {
         const td = document.createElement('td'); td.textContent = has(r[f]) ? r[f] : '—'; tr.append(td);
       }
       tb.append(tr);

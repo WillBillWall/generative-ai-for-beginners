@@ -85,7 +85,7 @@ def test_extract_with_fake_client():
     payload = {"observations": [{
         "date": "2026-07-02", "side": "RU", "sector": "Pokrovsk", "unit": "",
         "tactic_category": "assault", "tactic_subtype": "small_group_infiltration",
-        "phase": "dominant", "summary": "Small groups infiltrating.", "confidence": "high"}]}
+        "stage": "widespread", "counter_reported": "no", "summary": "Small groups infiltrating.", "confidence": "high"}]}
     captured = {}
 
     class FakeMessages:
@@ -150,11 +150,11 @@ def test_monthly_rates_days_and_ratios():
 
 def test_adaptation_timing():
     base = {"subtype_label": "x", "category_label": "y", "side": "RU"}
-    obs = [dict(base, tactic_subtype="a", date="2024-01-01", phase="emerging"),
-           dict(base, tactic_subtype="a", date="2024-07-01", phase="scaling"),
-           dict(base, tactic_subtype="a", date="2025-01-01", phase="countered"),
-           dict(base, tactic_subtype="b", date="2024-03-01", phase="dominant"),
-           dict(base, tactic_subtype="b", date="2024-05-01", phase="scaling")]
+    obs = [dict(base, tactic_subtype="a", date="2024-01-01", stage="emerging", counter_reported="no"),
+           dict(base, tactic_subtype="a", date="2024-07-01", stage="spreading", counter_reported="no"),
+           dict(base, tactic_subtype="a", date="2025-01-01", stage="widespread", counter_reported="yes"),
+           dict(base, tactic_subtype="b", date="2024-03-01", stage="widespread", counter_reported="no"),
+           dict(base, tactic_subtype="b", date="2024-05-01", stage="widespread", counter_reported="no")]
     a, b = trends.adaptation(obs)
     assert a["months_to_spread"] == pytest.approx(6.0, abs=0.1)
     assert a["months_to_counter"] == pytest.approx(12.0, abs=0.1)
@@ -198,3 +198,16 @@ def test_every_subtype_has_a_summary_phrase():
     tax = taxonomy()
     subtypes = {s for c in tax["categories"].values() for s in c["subtypes"]}
     assert subtypes == set(tax["phrases"])
+
+
+def test_stage_order_check():
+    base = dict(normalize.load_observations()[0], tactic_subtype="glide_bomb", tactic_category="fires", side="RU", sector="X")
+    ok = [dict(base, id="a", date="2024-01-01", stage="spreading"), dict(base, id="b", date="2025-01-01", stage="widespread"),
+          dict(base, id="c", date="2026-01-01", stage="spreading", sector="Y")]       # new sector may restart lower
+    normalize.check_stage_order(ok)
+    with pytest.raises(normalize.ValidationError, match="went back"):
+        normalize.check_stage_order([ok[0], ok[1], dict(base, id="d", date="2026-02-01", stage="emerging")])
+    with pytest.raises(normalize.ValidationError, match="resurgent"):
+        normalize.check_stage_order([ok[0], dict(base, id="e", date="2025-06-01", stage="resurgent")])
+    normalize.check_stage_order([ok[0], dict(base, id="f", date="2025-01-01", stage="fading"),
+                                 dict(base, id="g", date="2026-01-01", stage="resurgent")])

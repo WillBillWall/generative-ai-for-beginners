@@ -17,14 +17,13 @@ from datetime import date
 
 import numpy as np
 
-from .common import WAR_START
+from .common import WAR_START, sides_of
 from .losses import ua_mod_daily_deltas
 
 RATE_CLASSES = ["tank", "afv", "artillery", "mrl", "air_defense", "uav", "vehicles", "ugv"]
 TREND_CLASSES = ["tank", "afv", "artillery", "mrl", "air_defense", "uav", "vehicles"]
 SHIFT_CLASSES = ["tank", "afv", "artillery", "uav", "vehicles"]
-SPREAD_ORDER = {"emerging": 0, "scaling": 1, "dominant": 2}
-COUNTER_PHASES = {"countered", "declining"}
+SPREAD_ORDER = {"emerging": 0, "spreading": 1, "widespread": 2}
 DAYS_PER_MONTH = 30.44
 INDEX_CLASSES = ["tank", "afv", "artillery", "vehicles", "uav"]
 BASELINE_MONTHS = ("2022-04", "2022-05", "2022-06")  # first full quarter of the war
@@ -174,30 +173,35 @@ def shift_points(monthly: list[dict], observations: list[dict], window_months: f
                 "trend_before_pct_month": round((math.exp(slope_b) - 1) * 100, 1),
                 "trend_after_pct_month": round((math.exp(slope_a) - 1) * 100, 1),
                 "nearby_events": len(near),
-                "nearby": "; ".join(f"{o['date'][:7]} {o['subtype_label']} ({o['phase']})" for o in near[:4]),
+                "nearby": "; ".join(f"{o['date'][:7]} {o['subtype_label']} ({o['stage']})" for o in near[:4]),
             })
     return rows
 
 
 def adaptation(observations: list[dict]) -> list[dict]:
-    by_sub: dict[str, list[dict]] = defaultdict(list)
+    """Per row (tactic + side): months from first report to spreading further, and to a counter.
+
+    spread: first later report at a higher usage stage (emerging < spreading < widespread).
+    counter: first later report with counter_reported = yes, or the first report itself if it
+    already says so (then 0 months is not meaningful and is left blank).
+    """
+    by_row: dict[tuple[str, str], list[dict]] = defaultdict(list)
     for o in observations:
-        by_sub[o["tactic_subtype"]].append(o)
+        for side in sides_of(o):
+            by_row[(o["tactic_subtype"], side)].append(o)
     rows = []
-    for sub, obs in by_sub.items():
+    for (sub, side), obs in by_row.items():
         obs = sorted(obs, key=lambda o: o["date"])
         first = obs[0]
-        rank0 = SPREAD_ORDER.get(first["phase"], -1)
-        # spread: first later report at a higher stage (emerging < scaling < dominant)
-        spread = next((o for o in obs[1:] if SPREAD_ORDER.get(o["phase"], -1) > rank0), None) if rank0 >= 0 else None
-        counter = next((o for o in obs[1:] if o["phase"] in COUNTER_PHASES), None)
+        rank0 = SPREAD_ORDER.get(first["stage"], -1)
+        spread = next((o for o in obs[1:] if SPREAD_ORDER.get(o["stage"], -1) > rank0), None) if rank0 >= 0 else None
+        counter = next((o for o in obs[1:] if o.get("counter_reported") == "yes"), None)
         rows.append({
-            "tactic_subtype": sub, "subtype_label": first["subtype_label"],
-            "category_label": first["category_label"],
-            "sides": "/".join(sorted({o["side"] for o in obs})),
-            "observations": len(obs), "first_seen": first["date"], "first_phase": first["phase"],
+            "row_key": f"{sub}|{side}", "tactic_subtype": sub, "side": side,
+            "subtype_label": first["subtype_label"], "category_label": first["category_label"],
+            "observations": len(obs), "first_seen": first["date"], "first_stage": first["stage"],
             "first_year": int(first["date"][:4]),
-            "spread_phase": spread["phase"] if spread else "",
+            "spread_stage": spread["stage"] if spread else "",
             "months_to_spread": round(_months_between(first["date"], spread["date"]), 1) if spread else None,
             "months_to_counter": round(_months_between(first["date"], counter["date"]), 1) if counter else None,
             "first_summary": first.get("summary", ""),

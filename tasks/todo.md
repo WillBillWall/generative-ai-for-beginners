@@ -101,3 +101,18 @@
 - [x] The summary is drawn from data on every view: drone/tank levels and their 3-month direction; current Russian assault methods and what backs them, quoting the latest report; Ukraine's most recent measures and the latest countered tactic; and the 30-day territory pace vs the previous 30 days and the 18-month peak, with a conclusion chosen by that pace
 - [x] Ran once against the real data in Node. This caught a CRLF bug (CSV rows ending "True\r") and a kill-zone misclassification; both fixed
 - [x] Second manual run of the scheduled task: tests passed, no data change, correctly published nothing. A push is not yet exercised (nothing to commit)
+
+# Stage model fix (option A, requested 2026-11-04)
+- [x] Replace `phase` with an ordered `stage`: emerging → spreading → widespread → fading, plus `resurgent` (only after fading)
+- [x] Separate `counter_reported` (yes/no) from stage
+- [x] Recode the 33 seed rows; countered rows get the usage stage the source describes, plus counter_reported=yes
+- [x] Rows per (tactic, side): RU, UA, or "both sides"
+- [x] Order check in the build: within one row and the same sector, a stage may not go backwards unless it is `resurgent`; a different sector is a new place and may restart lower
+- [x] Carry the change through: Claude extraction schema, adaptation metrics, dashboard timeline, legend, detail, table, summary, front-line ticks
+
+## Stage model review
+- The 33 seed rows were recoded mechanically: scaling→spreading, dominant→widespread, declining→fading. The three "countered" rows became widespread + counter_reported=yes: Ukraine's 2023 mechanized assaults, Ukraine's jamming in 2025, and Russia's Rubikon-driven kill zone in 2026.
+- A "both sides" report is placed in the Russian and the Ukrainian row (`sides_of`). Without that, splitting by side broke continuity; for example, Russian fiber-optic FPVs never showed as spreading.
+- The order check runs on every build. All 33 rows pass; the drops back are new-sector cases (glide bombs at the Fortress Belt, infiltration at Dobropillya).
+- Adaptation per side: Ukraine's jamming spread, then was countered, after 8.8 months. The median months to spread is 20.5 for tactics first seen in 2023 (n=1), 6.5 for 2024 (n=4), and 4.3 for 2025 (n=3).
+- 18 tests pass, including a new order-check test. The summary was re-run against the data.

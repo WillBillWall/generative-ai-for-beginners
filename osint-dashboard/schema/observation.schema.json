@@ -1,25 +1,116 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Tactical observation",
-  "description": "One dated, sourced statement about how a tactic is being used. Category/subtype/phase values are checked against taxonomy.yaml by normalize.py.",
+  "description": "One dated, sourced statement about how a tactic is being used. Category/subtype/stage values are checked against taxonomy.yaml by normalize.py.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["id", "date", "date_precision", "source_org", "source_title", "source_url", "access", "side", "sector", "unit", "tactic_category", "tactic_subtype", "phase", "summary", "confidence"],
+  "required": [
+    "id",
+    "date",
+    "date_precision",
+    "source_org",
+    "source_title",
+    "source_url",
+    "access",
+    "side",
+    "sector",
+    "unit",
+    "tactic_category",
+    "tactic_subtype",
+    "stage",
+    "counter_reported",
+    "summary",
+    "confidence"
+  ],
   "properties": {
-    "id": {"type": "string", "pattern": "^[a-z0-9_-]+$"},
-    "date": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
-    "date_precision": {"enum": ["day", "month", "quarter"]},
-    "source_org": {"enum": ["ISW", "RUSI", "Oryx", "WarSpotting", "UA MoD", "Media", "Other think tank"]},
-    "source_title": {"type": "string", "minLength": 3},
-    "source_url": {"type": "string", "pattern": "^https://"},
-    "access": {"enum": ["primary", "secondary"], "description": "secondary = the claim was read in coverage of the source, not the source itself"},
-    "side": {"enum": ["RU", "UA", "both"]},
-    "sector": {"type": "string"},
-    "unit": {"type": "string"},
-    "tactic_category": {"type": "string"},
-    "tactic_subtype": {"type": "string"},
-    "phase": {"type": "string"},
-    "summary": {"type": "string", "minLength": 10, "maxLength": 280, "description": "Paraphrase, never long quotation"},
-    "confidence": {"enum": ["high", "medium", "low"]}
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+$"
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "date_precision": {
+      "enum": [
+        "day",
+        "month",
+        "quarter"
+      ]
+    },
+    "source_org": {
+      "enum": [
+        "ISW",
+        "RUSI",
+        "Oryx",
+        "WarSpotting",
+        "UA MoD",
+        "Media",
+        "Other think tank"
+      ]
+    },
+    "source_title": {
+      "type": "string",
+      "minLength": 3
+    },
+    "source_url": {
+      "type": "string",
+      "pattern": "^https://"
+    },
+    "access": {
+      "enum": [
+        "primary",
+        "secondary"
+      ],
+      "description": "secondary = the claim was read in coverage of the source, not the source itself"
+    },
+    "side": {
+      "enum": [
+        "RU",
+        "UA",
+        "both"
+      ]
+    },
+    "sector": {
+      "type": "string"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "tactic_category": {
+      "type": "string"
+    },
+    "tactic_subtype": {
+      "type": "string"
+    },
+    "stage": {
+      "enum": [
+        "emerging",
+        "spreading",
+        "widespread",
+        "fading",
+        "resurgent"
+      ]
+    },
+    "counter_reported": {
+      "enum": [
+        "yes",
+        "no"
+      ],
+      "description": "yes = the source reports the other side has found an effective answer to this side's use of the tactic"
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 280,
+      "description": "Paraphrase, never long quotation"
+    },
+    "confidence": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    }
   }
 }
