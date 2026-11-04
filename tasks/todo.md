@@ -95,3 +95,9 @@
 - The largest single-day changes are +92 km² (2025-07-04) and -116 km² (2026-08-13). These are likely map redraws, and the chart caveat says so.
 - Scheduled task `trig_01PfhzHd5Kw7MuP5HLafJpCn` runs daily at 04:55 UTC in a fresh session and follows REFRESH.md. Datasets carry `schedule` and `staleAfterHours: 48`.
 - 16 tests pass. The first scheduled run has been fired by hand to prove it works end to end; see its report.
+
+# Self-writing summary (requested 2026-11-04)
+- [x] Every tactic subtype gets a plain-English phrase (`taxonomy.yaml: phrases`); a test checks they cover the whole list
+- [x] The summary is drawn from data on every view: drone/tank levels and their 3-month direction; current Russian assault methods and what backs them, quoting the latest report; Ukraine's most recent measures and the latest countered tactic; and the 30-day territory pace vs the previous 30 days and the 18-month peak, with a conclusion chosen by that pace
+- [x] Ran once against the real data in Node. This caught a CRLF bug (CSV rows ending "True\r") and a kill-zone misclassification; both fixed
+- [x] Second manual run of the scheduled task: tests passed, no data change, correctly published nothing. A push is not yet exercised (nothing to commit)

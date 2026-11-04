@@ -109,7 +109,7 @@ def tactic_shift(quarterly: list[dict]) -> list[dict]:
 def write_csv(path: Path, rows: list[dict]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=list(rows[0]))
+        w = csv.DictWriter(f, fieldnames=list(rows[0]), lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
 
@@ -122,6 +122,7 @@ def build(refresh: bool = False, territory_refresh: bool = False) -> dict[str, i
         r["category_label"] = cats[r["tactic_category"]]["label"]
         r["subtype_label"] = cats[r["tactic_category"]]["subtypes"][r["tactic_subtype"]]
         r["evidence"] = "assessed" if r["source_org"] in ASSESSED_ORGS else "reported"
+        r["subtype_phrase"] = taxonomy().get("phrases", {}).get(r["tactic_subtype"], r["subtype_label"].lower())
     loss_rows = [validate_loss(r) for r in losses.run(refresh=refresh)]
     mod = [r for r in loss_rows if r["source_org"] == "UA MoD"]
     oryx = [r for r in loss_rows if r["source_org"] == "Oryx"]

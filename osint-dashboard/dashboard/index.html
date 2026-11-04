@@ -59,13 +59,8 @@
 <div class="ut">
   <header class="ut-head">
     <h1 class="ut-title">Ukraine War Tactics Tracker</h1>
-    <p class="ut-eyebrow">Current picture · assessment written 4 November 2026 · figures update daily</p>
-    <div class="ut-summary">
-      <p>Drones now dominate the fighting. Ukraine reports downing <b data-draw="now-uav" data-source="now_summary" data-field="uav_index">—</b> as many Russian drones a day as in spring 2022, while Russian tank losses are down to <b data-draw="now-tank" data-source="now_summary" data-field="tank_index">—</b> of that level, as armor is held back from a drone-saturated zone that ISW says now reaches tens of kilometres behind the front.</p>
-      <p>Russia attacks mainly with small infantry groups, on foot or on motorcycles, that infiltrate once drones have cut the supply routes. ISW says this method took Pokrovsk in February 2026 and is now being tried at Dobropillya.</p>
-      <p>Both sides go after each other's logistics and drone crews. Russian logistics-vehicle losses are <b data-draw="now-veh" data-source="now_summary" data-field="vehicles_index">—</b> their spring 2022 level, and Ukrainian jamming, interceptor drones and strikes on the Rubikon drone unit have limited Russian drone use, pushing Russia toward heavier glide bombs.</p>
-      <p>The front line has nearly stopped moving: Russia's net gain was <b data-draw="now-terr" data-source="territory_30d" data-field="net_km2">—</b> in the last 30 days, about <b data-draw="now-rate" data-source="territory_30d" data-field="per_day">—</b> km² a day, against <b data-draw="now-mid25" data-source="territory_monthly" data-field="km2_per_day" data-where="month=2025-07">—</b> km² a day in July 2025. On this evidence the front is slow and attritional, and defending currently has the advantage over attacking.</p>
-    </div>
+    <p class="ut-eyebrow">Current picture · written by this page from the latest data, to <span data-draw="summary-date" data-source="territory_30d" data-field="to_date">—</span></p>
+    <div class="ut-summary" id="current-picture" data-draw="summary" data-source="now_summary territory_30d territory_monthly observations">—</div>
   </header>
 
   <div class="ut-tiles">
@@ -250,6 +245,7 @@
   const qLabel = (q) => q ? `${q.slice(0, 4)} ${q.slice(4)}` : '—';
   const qDate = (q) => new Date(Date.UTC(+q.slice(0, 4), (+q.slice(5) - 1) * 3 + 1, 15));
   window.utFmt = { num, fmt1, fmt0, qLabel, qDate };
+  window.utTrue = (v) => v === true || String(v).trim() === 'True';
 
   dash.calc('headline', {
     title: 'Latest full quarter vs 2022 Q2',
@@ -290,13 +286,15 @@
 
   dash.calc('now_summary', {
     title: 'Latest growth index',
-    description: 'Growth index (1 = average daily rate in Apr–Jun 2022) for drones, tanks and logistics vehicles in the latest complete month, 3-month rolling.',
+    description: 'Growth index (1 = average daily rate in Apr–Jun 2022) for drones, tanks and logistics vehicles in the latest complete month and three months earlier, 3-month rolling.',
     inputs: ['monthly'],
     fn: (monthly) => {
-      const full = monthly.filter((r) => r.complete === 'True' || r.complete === true);
+      const full = monthly.filter((r) => window.utTrue(r.complete));
       const last = full[full.length - 1];
       if (!last) return [];
-      return [{ month: last.month, uav_index: Number(last.uav_index_3m), tank_index: Number(last.tank_index_3m), vehicles_index: Number(last.vehicles_index_3m) }];
+      const prev = full[full.length - 4] || full[0];
+      return [{ month: last.month, uav_index: Number(last.uav_index_3m), tank_index: Number(last.tank_index_3m), vehicles_index: Number(last.vehicles_index_3m),
+        uav_index_3m_ago: Number(prev.uav_index_3m), tank_index_3m_ago: Number(prev.tank_index_3m) }];
     },
   });
 
@@ -330,22 +328,76 @@
   });
   terr('t-terr', (r) => (r.net_km2 == null ? '—' : `${r.net_km2 >= 0 ? '+' : ''}${fmt0(r.net_km2)} km²`));
   terr('t-terr-prev', (r) => (r.prev_net_km2 == null ? '—' : `${r.prev_net_km2 >= 0 ? '+' : ''}${fmt0(r.prev_net_km2)}`));
-  const times = (v) => `${v >= 10 ? fmt0(v) : fmt1(v)} times`;
-  const share = (v) => `${fmt0(v * 100)}%`;
-  const nowWord = (name, field, show) => dash.draw(name, (el) => {
-    const d = dash.data('now_summary');
+  dash.draw('summary-date', (el) => {
+    const d = dash.data('territory_30d');
     const r = d.status === 'ok' && d.data.length ? d.data[0] : null;
-    el.textContent = r && Number.isFinite(r[field]) ? show(r[field]) : '—';
+    el.textContent = r ? d3.utcFormat('%-d %B %Y')(new Date(r.to_date)) : '—';
   });
-  nowWord('now-uav', 'uav_index', times);
-  nowWord('now-tank', 'tank_index', share);
-  nowWord('now-veh', 'vehicles_index', times);
-  terr('now-terr', (r) => (r.net_km2 == null ? '—' : `${fmt0(r.net_km2)} km²`));
-  terr('now-rate', (r) => (r.per_day == null ? '—' : fmt1(r.per_day)));
-  dash.draw('now-mid25', (el) => {
-    const d = dash.data('territory_monthly');
-    const r = d.status === 'ok' ? d.data.find((x) => x.month === '2025-07') : null;
-    el.textContent = r ? fmt1(Number(r.km2_per_day)) : '—';
+
+  // The summary is written from the data on every view. Each sentence's wording
+  // depends on what the numbers and the latest tactic reports show.
+  dash.draw('summary', (el) => {
+    const ns = dash.data('now_summary'), tr = dash.data('territory_30d'), tm = dash.data('territory_monthly'), ob = dash.data('observations');
+    if ([ns, tr, tm, ob].some((d) => d.status !== 'ok') || !ns.data.length || !tr.data.length) { el.textContent = '—'; return; }
+    const n = ns.data[0], t30 = tr.data[0];
+    const asOf = new Date(t30.to_date);
+    const times = (v) => `${v >= 10 ? fmt0(v) : fmt1(v)} times`;
+    const share = (v) => `${fmt0(v * 100)}%`;
+    const list = (xs) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`);
+    const month = (iso) => d3.utcFormat('%B %Y')(new Date(iso));
+    const trend = (now, before) => (now > before * 1.1 ? 'rising' : now < before * 0.9 ? 'falling' : 'steady');
+
+    // Latest report per tactic within the last 12 months
+    const cutoff = new Date(asOf); cutoff.setUTCFullYear(cutoff.getUTCFullYear() - 1);
+    const latest = new Map();
+    for (const o of ob.data.slice().sort((a, b) => a.date.localeCompare(b.date))) latest.set(o.tactic_subtype, o);
+    const recent = [...latest.values()].filter((o) => new Date(o.date) >= cutoff);
+    const rank = { dominant: 0, scaling: 1, emerging: 2 };
+    const active = (cats) => recent.filter((o) => cats.includes(o.tactic_category) && o.phase in rank)
+      .sort((a, b) => rank[a.phase] - rank[b.phase] || b.date.localeCompare(a.date));
+    const countered = recent.filter((o) => o.phase === 'countered' || o.phase === 'declining').sort((a, b) => b.date.localeCompare(a.date));
+
+    // 1. Drones vs armor
+    const uavTrend = trend(n.uav_index, n.uav_index_3m_ago);
+    const s1 = (n.uav_index > 10 * n.tank_index ? 'Drones dominate the fighting. ' : 'Drones and armor both shape the fighting. ')
+      + `Ukraine reports downing ${times(n.uav_index)} as many Russian drones a day as in spring 2022, a rate that is ${uavTrend} over the last three months, `
+      + `while Russian tank losses are ${share(n.tank_index)} of their spring 2022 level`
+      + (n.tank_index < 0.5 ? ', a sign that armor is being kept away from the front.' : '.');
+
+    // 2. How Russia attacks now
+    const assault = active(['assault']).filter((o) => o.side === 'RU');
+    const support = active(['logistics_interdiction', 'fires', 'uas_strike']).filter((o) => o.side !== 'UA');
+    const lead = assault.slice().sort((a, b) => b.date.localeCompare(a.date))[0];
+    const s2 = assault.length
+      ? `Russian attacks currently rely on ${list(assault.slice(0, 2).map((o) => o.subtype_phrase))}`
+        + (support.length ? `, backed by ${list(support.slice(0, 2).map((o) => o.subtype_phrase))}. ` : '. ')
+        + `The latest report, from ${o2place(lead)} in ${month(lead.date)}: ${lead.summary}`
+      : 'No Russian assault tactics have been reported in the last 12 months.';
+    function o2place(o) { return o.sector && o.sector !== 'Theatre-wide' ? o.sector : 'across the front'; }
+
+    // 3. Counter-drone and counter-adaptation
+    const counters = recent.filter((o) => o.side === 'UA' && o.phase in rank)
+      .sort((a, b) => rank[a.phase] - rank[b.phase] || b.date.localeCompare(a.date));
+    const lastCounter = countered[0];
+    const s3 = (counters.length ? `On Ukraine's side, the most recent reports point to ${list(counters.slice(0, 3).map((o) => o.subtype_phrase))}. ` : '')
+      + (lastCounter ? `The latest tactic reported as countered is ${lastCounter.subtype_phrase} (${month(lastCounter.date)}). ` : '')
+      + `Russian logistics-vehicle losses are ${times(n.vehicles_index)} their spring 2022 level, so both sides are fighting over supply lines.`;
+
+    // 4. Front line
+    const months = tm.data.filter((r) => window.utTrue(r.complete) && new Date(r.month + '-01') >= new Date(asOf.getTime() - 548 * 864e5));
+    const peak = months.reduce((a, b) => (Number(b.km2_per_day) > Number(a.km2_per_day) ? b : a), months[0]);
+    const perDay = Number(t30.per_day), net = Number(t30.net_km2), prev = Number(t30.prev_net_km2), peakRate = Number(peak.km2_per_day);
+    const pace = net > prev * 1.2 ? 'faster than' : net < prev * 0.8 ? 'slower than' : 'about the same as';
+    let s4 = net >= 0
+      ? `Russia's net gain was ${fmt0(net)} km² in the last 30 days (${fmt1(perDay)} km² a day), ${pace} the 30 days before (${fmt0(prev)} km²), against a recent peak of ${fmt1(peakRate)} km² a day in ${month(peak.month + '-01')}. `
+      : `Ukraine made a net gain of ${fmt0(-net)} km² in the last 30 days, after ${prev >= 0 ? `a Russian gain of ${fmt0(prev)}` : `a Ukrainian gain of ${fmt0(-prev)}`} km² in the 30 days before. `;
+    s4 += perDay < 0.25 * peakRate
+      ? 'On this evidence the front is slow and attritional, and defending currently has the advantage over attacking.'
+      : perDay > 0.75 * peakRate
+        ? 'On this evidence Russian attacks are gaining ground close to their fastest recent pace.'
+        : 'On this evidence Russia is still gaining ground, but well below its recent peak.';
+
+    el.replaceChildren(...[s1, s2, s3, s4].map((txt) => { const p = document.createElement('p'); p.textContent = txt; return p; }));
   });
   terr('t-terr-date', (r) => d3.utcFormat('%b %-d, %Y')(new Date(r.to_date)));
   summary('t-subtypes', 'subtypes');
@@ -387,7 +439,7 @@
       { k: 'afv_index_3m', name: 'Armored vehicles', c: dash.colors[4] },
       { k: 'tank_index_3m', name: 'Tanks', c: dash.colors[3] },
     ];
-    const rows = d.data.filter((r) => r.complete === 'True' && r.month >= '2022-06');
+    const rows = d.data.filter((r) => window.utTrue(r.complete) && r.month >= '2022-06');
     const W = el.clientWidth || 700, H = 280;
     const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
     const mult = (v) => (v >= 1 ? `×${d3.format(',.0f')(v)}` : `×${d3.format('.1f')(v)}`);
@@ -662,7 +714,7 @@
     el.replaceChildren();
     const d = dash.data('territory_monthly'), o = dash.data('observations');
     if (d.status !== 'ok' || o.status !== 'ok') { el.textContent = '—'; return; }
-    const rows = d.data.map((r) => ({ ...r, v: Number(r.net_change_km2), t: new Date(r.month + '-01'), full: r.complete === 'True' }));
+    const rows = d.data.map((r) => ({ ...r, v: Number(r.net_change_km2), t: new Date(r.month + '-01'), full: window.utTrue(r.complete) }));
     const start = rows[0].t, end = new Date();
     const obs = o.data.filter((r) => new Date(r.date) >= start);
     const W = el.clientWidth || 700, H = 290, m = { t: 14, r: 12, b: 64, l: 48 };
@@ -757,7 +809,7 @@
     const d = dash.data('monthly'), sp = dash.data('shift_points');
     if (d.status !== 'ok' || sp.status !== 'ok') { el.textContent = '—'; return; }
     const cls = el.dataset.cls, key = `${cls}_per_day`;
-    const rows = d.data.filter((r) => r.complete === 'True' && n_(r[key]) > 0);
+    const rows = d.data.filter((r) => window.utTrue(r.complete) && n_(r[key]) > 0);
     const breaks = sp.data.filter((b) => b.equipment_class === cls);
     const W = el.clientWidth || 260, H = 144, m = { t: 16, r: 6, b: 18, l: 30 };
     const x = d3.scaleUtc(d3.extent(rows, (r) => monthDate(r.month)), [m.l, W - m.r]);

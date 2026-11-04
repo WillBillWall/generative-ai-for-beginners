@@ -191,3 +191,10 @@ def test_territory_daily_and_monthly():
     jan, feb = territory.monthly_rows(daily)
     assert jan["net_change_km2"] == 3.0 and feb["net_change_km2"] == 9.0   # Feb measured from Jan's last day
     assert feb["km2_per_day"] == pytest.approx(9 / 28, abs=0.05)
+
+
+def test_every_subtype_has_a_summary_phrase():
+    from ingest.common import taxonomy
+    tax = taxonomy()
+    subtypes = {s for c in tax["categories"].values() for s in c["subtypes"]}
+    assert subtypes == set(tax["phrases"])

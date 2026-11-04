@@ -77,3 +77,30 @@ equipment_classes:
   ew_radar: Radars, jammers and deception systems
   command_comms: Command posts and communications stations
   other: Anything else
+
+# Short phrases used when the dashboard writes its "Current picture" summary.
+phrases:
+  fpv: radio-controlled FPV drones
+  fiber_optic_fpv: fiber-optic FPV drones that jamming cannot stop
+  bomber_drone: bomb-dropping drones
+  long_range_strike: long-range attack drones
+  uav_complex: integrated recon-strike drone units
+  artillery_spotting: drones spotting for artillery
+  persistent_isr: constant drone surveillance of the front
+  logistics_ugv: ground robots for resupply and evacuation
+  armed_ugv: armed ground robots
+  robot_only_assault: assaults by ground robots without infantry
+  jamming: radio jamming of drones
+  signature_management: thermal camouflage against drone sensors
+  interceptor_drone: interceptor drones that shoot down other drones
+  operator_hunting: hunting enemy drone crews
+  mechanized_assault: armored assaults
+  attritional_infantry: waves of attritional infantry assaults
+  small_group_infiltration: small infantry groups infiltrating on foot
+  motorcycle_light_vehicle: fast motorcycle and light-vehicle assaults
+  artillery: tube and rocket artillery
+  glide_bomb: heavy glide bombs
+  kill_zone: a drone-saturated kill zone behind the front
+  drone_ambush: drones waiting in ambush on supply routes
+  drone_c2_strike: strikes on drone units' bases and command posts
+  dedicated_drone_branch: dedicated drone forces
