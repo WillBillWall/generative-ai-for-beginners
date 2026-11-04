@@ -20,7 +20,7 @@ from pathlib import Path
 
 import jsonschema
 
-from ingest import losses
+from ingest import losses, trends
 from ingest.common import DATA, PROCESSED, SCHEMA, SEED, quarter_of, taxonomy
 
 EXTRACTED = DATA / "extracted"
@@ -138,6 +138,15 @@ def build(refresh: bool = False) -> dict[str, int]:
                               for c, n in sorted(oryx_by_class.items(), key=lambda kv: -kv[1])],
         "tactic_shift.csv": tactic_shift(mod),
         "claimed_vs_confirmed.csv": losses.claimed_vs_confirmed(),
+    }
+    monthly = trends.monthly_rates(losses.fetch_json(losses.UA_MOD_URL, "ua_mod_equipment.json", False))
+    adapt = trends.adaptation(obs)
+    outputs |= {
+        "monthly.csv": monthly,
+        "trend_rates.csv": trends.trend_rates(monthly),
+        "shift_points.csv": trends.shift_points(monthly, obs),
+        "adaptation.csv": adapt,
+        "adaptation_by_year.csv": trends.adaptation_by_year(adapt),
     }
     for name, rows in outputs.items():
         write_csv(PROCESSED / name, rows)

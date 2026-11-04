@@ -20,6 +20,8 @@
   .ut-chart { position: relative; min-height: 15rem; }
   .ut-mini { position: relative; min-height: 8rem; }
   .ut-timeline { position: relative; min-height: 26rem; overflow-x: auto; }
+  .ut-growth { position: relative; min-height: 15rem; }
+  .ut-mini-tall { min-height: 9rem; }
   .ut-claims { position: relative; min-height: 17rem; }
   .ut svg text { fill: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); }
   .ut svg .ut-strong { fill: var(--color-fg); font-weight: 600; }
@@ -92,6 +94,58 @@
     <p class="ut-note">Each small chart has its own scale. Ground-robot losses have been reported only since 3 May 2026, so they are not charted yet.</p>
   </section>
 
+  <section class="ut-section" id="trends">
+    <h2 class="ut-h2">Trend analysis</h2>
+    <p class="ut-lede">From <b data-draw="tr-from" data-source="trend_rates" data-field="from_month" data-where="equipment_class=uav&amp;window=last_12m">—</b> to <b data-draw="tr-to" data-source="trend_rates" data-field="to_month" data-where="equipment_class=uav&amp;window=last_12m">—</b>, claimed Russian drone losses changed by <b data-draw="tr-uav" data-source="trend_rates" data-field="per_quarter_pct" data-where="equipment_class=uav&amp;window=last_12m">—</b> a quarter and logistics vehicle losses by <b data-draw="tr-veh" data-source="trend_rates" data-field="per_quarter_pct" data-where="equipment_class=vehicles&amp;window=last_12m">—</b>, while tank losses changed by <b data-draw="tr-tank" data-source="trend_rates" data-field="per_quarter_pct" data-where="equipment_class=tank&amp;window=last_12m">—</b>. Tactics first seen in 2025 took a median of <b data-draw="tr-spread" data-source="adaptation_by_year" data-field="median_months_to_spread" data-where="first_year=2025">—</b> months to spread, against <b data-draw="tr-spread0" data-source="adaptation_by_year" data-field="median_months_to_spread" data-where="first_year=2023">—</b> for the one tactic measured from 2023, a hint of faster adaptation from few data points.</p>
+
+    <div class="ut-grid">
+      <div class="ut-card">
+        <h3>Growth and decline rates</h3>
+        <p class="ut-note">Trend fitted to monthly claimed losses per day, as % change per quarter. Bars are the last 12 complete months; the tick is the 12 months before. Faded bars have a weak fit (R² below 0.3), so treat them as flat.</p>
+        <div class="ut-growth" data-draw="growth" data-source="trend_rates"></div>
+      </div>
+      <div class="ut-card">
+        <h3>Fires and logistics vs maneuver</h3>
+        <p class="ut-note">Claimed Russian losses per armored vehicle destroyed, 3-month rolling, log scale. A rising line means more of what is hit is artillery, supply vehicles or drones than tanks and armored vehicles.</p>
+        <div class="ut-chart" data-draw="mix" data-source="monthly"></div>
+      </div>
+    </div>
+
+    <div class="ut-card">
+      <h3>Monthly loss rates and shift points</h3>
+      <p class="ut-note">Claimed losses per day by month, log scale. Dashed lines mark months where the trend changed, found by splitting each series into straight-line segments of at least six months. Hover a marker to see the trend before and after, and the tactics reported within three months. A shift can also come from a change in how the ministry reports.</p>
+      <div class="ut-grid4">
+        <div><h3>Tanks</h3><div class="ut-mini ut-mini-tall" data-draw="shift" data-cls="tank" data-source="monthly shift_points"></div></div>
+        <div><h3>Armored vehicles</h3><div class="ut-mini ut-mini-tall" data-draw="shift" data-cls="afv" data-source="monthly shift_points"></div></div>
+        <div><h3>Artillery</h3><div class="ut-mini ut-mini-tall" data-draw="shift" data-cls="artillery" data-source="monthly shift_points"></div></div>
+        <div><h3>Drones</h3><div class="ut-mini ut-mini-tall" data-draw="shift" data-cls="uav" data-source="monthly shift_points"></div></div>
+        <div><h3>Logistics vehicles</h3><div class="ut-mini ut-mini-tall" data-draw="shift" data-cls="vehicles" data-source="monthly shift_points"></div></div>
+      </div>
+    </div>
+
+    <div class="ut-card">
+      <h3>Adaptation speed</h3>
+      <p class="ut-note">For each tactic, months from its first observation to the first report at a higher stage (emerging to scaling, or scaling to dominant), and to the first report that it was countered. Lines show the median for tactics first seen that year. Indicative only: each year has three or fewer measured tactics.</p>
+      <div class="ut-legend">
+        <span><i class="ut-sw" data-adapt-swatch="spread"></i>Months to spread</span>
+        <span><i class="ut-sw" data-adapt-swatch="counter"></i>Months to be countered</span>
+      </div>
+      <div class="ut-chart" data-draw="adapt" data-source="adaptation adaptation_by_year"></div>
+      <div class="ut-tablebox">
+        <table class="ut-table" data-source="adaptation" data-row-key="tactic_subtype">
+          <thead><tr>
+            <th data-field="subtype_label">Tactic</th>
+            <th data-field="first_seen">First seen</th>
+            <th data-field="first_phase">First stage</th>
+            <th data-field="months_to_spread">Months to spread</th>
+            <th data-field="months_to_counter">Months to counter</th>
+          </tr></thead>
+          <tbody data-draw="adapt-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <section class="ut-section" id="tactic-timeline">
     <h2 class="ut-h2">How tactics emerged, spread and were countered</h2>
     <div class="ut-card">
@@ -160,6 +214,7 @@
       <li>Oryx and WarSpotting count only visually confirmed losses, so they undercount. The Oryx figures here come from a mirror last updated in February 2023.</li>
       <li>Observations are paraphrased from ISW, RUSI and news coverage. Many ISW items were read through news reports of its assessments and are marked as secondary.</li>
       <li>ISW and RUSI write from a Western perspective with significant Ukrainian access; Russian-side tactics are often described through Ukrainian reporting.</li>
+      <li>Trend fits and shift points are statistics on claimed numbers. A shift can reflect a change in what the ministry counts as much as a change on the battlefield, and the adaptation-speed figures rest on a few dozen observations.</li>
       <li>Unit names are recorded only where a source gives them, and attributions sometimes conflict.</li>
     </ul>
   </section>
@@ -224,6 +279,11 @@
 
   for (const sw of document.querySelectorAll('[data-phase-swatch]')) {
     sw.style.background = dash.colors[Number(sw.dataset.phaseSwatch)];
+  }
+  for (const sw of document.querySelectorAll('[data-adapt-swatch]')) {
+    sw.style.background = sw.dataset.adaptSwatch === 'spread' ? dash.colors[0] : 'transparent';
+    sw.style.border = `2px solid ${dash.colors[3]}`;
+    if (sw.dataset.adaptSwatch === 'spread') sw.style.borderColor = dash.colors[0];
   }
   for (const sw of document.querySelectorAll('[data-claims-swatch]')) {
     sw.style.background = sw.dataset.claimsSwatch === 'accent' ? dash.colors[0] : 'var(--cds-chart-muted)';
@@ -475,5 +535,215 @@
       t.append(k, a, b);
       const [px, py] = d3.pointer(ev, el); placeTip(t, el, px, py);
     }).on('pointerleave', () => { t.hidden = true; });
+  });
+</script>
+
+<script>
+  const { num: n_, fmt1: f1_, fmt0: f0_ } = window.utFmt;
+  const { tip: tip_, placeTip: place_ } = window.utTip;
+  const LABEL = { tank: 'Tanks', afv: 'Armored vehicles', artillery: 'Artillery', mrl: 'Rocket launchers', air_defense: 'Air defense', uav: 'Drones', vehicles: 'Logistics vehicles' };
+  const pct = (v) => (v == null || v === '' ? '—' : `${Number(v) > 0 ? '+' : ''}${f1_(Number(v))}%`);
+  const one = (id, where) => { const d = dash.data(id); return d.status === 'ok' ? d.data.find(where) : null; };
+  const tw = (name, id, where, show) => dash.draw(name, (el) => { const r = one(id, where); el.textContent = r ? show(r) : '—'; });
+  const last12 = (cls) => (r) => r.equipment_class === cls && r.window === 'last_12m';
+  tw('tr-from', 'trend_rates', last12('uav'), (r) => d3.utcFormat('%b %Y')(new Date(r.from_month + '-01')));
+  tw('tr-to', 'trend_rates', last12('uav'), (r) => d3.utcFormat('%b %Y')(new Date(r.to_month + '-01')));
+  tw('tr-uav', 'trend_rates', last12('uav'), (r) => pct(r.per_quarter_pct));
+  tw('tr-veh', 'trend_rates', last12('vehicles'), (r) => pct(r.per_quarter_pct));
+  tw('tr-tank', 'trend_rates', last12('tank'), (r) => pct(r.per_quarter_pct));
+  tw('tr-spread', 'adaptation_by_year', (r) => r.first_year === '2025', (r) => f1_(Number(r.median_months_to_spread)));
+  tw('tr-spread0', 'adaptation_by_year', (r) => r.first_year === '2023', (r) => f1_(Number(r.median_months_to_spread)));
+
+  const textWidth = (svg, strings) => {
+    let w = 0;
+    const g = svg.append('g');
+    for (const s of strings) { const t = g.append('text').text(s); w = Math.max(w, t.node().getComputedTextLength()); }
+    g.remove();
+    return w;
+  };
+
+  dash.draw('growth', (el) => {
+    el.replaceChildren();
+    const d = dash.data('trend_rates');
+    if (d.status !== 'ok') { el.textContent = '—'; return; }
+    const classes = [...new Set(d.data.map((r) => r.equipment_class))];
+    const get = (c, w) => d.data.find((r) => r.equipment_class === c && r.window === w);
+    const rows = classes.map((c) => ({ c, now: get(c, 'last_12m'), before: get(c, 'prior_12m') }));
+    const W = el.clientWidth || 420, row = 30, H = rows.length * row + 26;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const left = textWidth(svg, rows.map((r) => LABEL[r.c] || r.c)) + 10;
+    const rightTexts = rows.map((r) => rateNote(r.now));
+    const right = textWidth(svg, rightTexts) + 10;
+    const max = d3.max(d.data, (r) => Math.abs(Number(r.per_quarter_pct))) || 1;
+    const x = d3.scaleLinear([-max, max], [left, W - right]);
+    svg.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', 0).attr('y2', H - 20).attr('stroke', 'var(--cds-chart-axis)');
+    for (const v of [-max, max]) {
+      svg.append('text').attr('x', x(v)).attr('y', H - 6).attr('text-anchor', v < 0 ? 'start' : 'end').text(pct(Math.round(v)));
+    }
+    const g = svg.append('g').selectAll('g').data(rows).join('g').attr('transform', (r, i) => `translate(0,${i * row})`);
+    g.append('text').attr('x', left - 8).attr('y', 18).attr('text-anchor', 'end').text((r) => LABEL[r.c] || r.c);
+    g.append('rect')
+      .attr('x', (r) => Math.min(x(0), x(Number(r.now.per_quarter_pct))))
+      .attr('width', (r) => Math.abs(x(Number(r.now.per_quarter_pct)) - x(0)))
+      .attr('y', 7).attr('height', 14).attr('rx', 2)
+      .attr('fill', (r) => (Number(r.now.per_quarter_pct) >= 0 ? dash.colors[0] : dash.colors[3]))
+      .attr('opacity', (r) => (Number(r.now.r2) >= 0.3 ? 1 : 0.35));
+    g.filter((r) => r.before && r.before.per_quarter_pct !== '').append('line')
+      .attr('x1', (r) => x(Number(r.before.per_quarter_pct))).attr('x2', (r) => x(Number(r.before.per_quarter_pct)))
+      .attr('y1', 3).attr('y2', 25).attr('stroke', 'var(--color-fg)').attr('stroke-width', 2);
+    g.append('text').attr('x', W - right + 8).attr('y', 18).text((r) => rateNote(r.now));
+    const t = tip_(el);
+    g.on('pointerenter', (ev, r) => {
+      t.hidden = false; t.innerHTML = '';
+      const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = LABEL[r.c] || r.c;
+      const a = document.createElement('div'); a.textContent = `Last 12 months: ${pct(r.now.per_quarter_pct)} a quarter (R² ${r.now.r2})`;
+      const b = document.createElement('div'); b.textContent = `12 months before: ${pct(r.before && r.before.per_quarter_pct)} a quarter`;
+      const c = document.createElement('div'); c.textContent = `Year on year: ${pct(r.now.yoy_pct)}`;
+      t.append(k, a, b, c);
+      const [px, py] = d3.pointer(ev, el); place_(t, el, px, py);
+    }).on('pointerleave', () => { t.hidden = true; });
+  });
+  function rateNote(r) {
+    if (!r || r.doubling_months === '' || Number(r.r2) < 0.3) return 'no clear trend';
+    const m = Number(r.doubling_months);
+    return m > 0 ? `doubles every ${f1_(m)} mo` : `halves every ${f1_(-m)} mo`;
+  }
+
+  const monthDate = (m) => new Date(m + '-15');
+
+  dash.draw('mix', (el) => {
+    el.replaceChildren();
+    const d = dash.data('monthly');
+    if (d.status !== 'ok') { el.textContent = '—'; return; }
+    const rows = d.data.filter((r) => r.complete === 'True');
+    const series = [
+      { k: 'drones_per_armor_3m', name: 'Drones', c: dash.colors[0] },
+      { k: 'vehicles_per_armor_3m', name: 'Logistics vehicles', c: dash.colors[1] },
+      { k: 'fires_per_armor_3m', name: 'Artillery and rockets', c: dash.colors[2] },
+    ];
+    const W = el.clientWidth || 420, H = 240;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const ends = series.map((s) => `${s.name} ${f1_(n_(rows.at(-1)[s.k]))}`);
+    const m = { t: 12, r: Math.min(textWidth(svg, ends) + 12, W * 0.45), b: 24, l: 34 };
+    const vals = rows.flatMap((r) => series.map((s) => n_(r[s.k]))).filter((v) => v > 0);
+    const x = d3.scaleUtc(d3.extent(rows, (r) => monthDate(r.month)), [m.l, W - m.r]);
+    const y = d3.scaleLog([d3.min(vals), d3.max(vals)], [H - m.b, m.t]).nice();
+    const ticks = y.ticks().filter((v) => [0.01, 0.1, 1, 10, 100, 1000].includes(v));
+    svg.append('g').selectAll('line').data(ticks).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('text').data(ticks).join('text').attr('x', m.l - 6).attr('y', (v) => y(v) + 4).attr('text-anchor', 'end').text(d3.format('~g'));
+    svg.append('g').selectAll('text').data(x.ticks(d3.utcYear.every(1))).join('text').attr('x', x).attr('y', H - 6).attr('text-anchor', 'middle').text(d3.utcFormat('%Y'));
+    const endYs = [];
+    for (const s of series) {
+      const pts = rows.filter((r) => n_(r[s.k]) > 0);
+      svg.append('path').datum(pts).attr('fill', 'none').attr('stroke', s.c).attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round')
+        .attr('d', d3.line((r) => x(monthDate(r.month)), (r) => y(n_(r[s.k]))));
+      endYs.push({ s, y: y(n_(pts.at(-1)[s.k])), v: n_(pts.at(-1)[s.k]) });
+    }
+    endYs.sort((a, b) => a.y - b.y);
+    for (let i = 1; i < endYs.length; i++) endYs[i].y = Math.max(endYs[i].y, endYs[i - 1].y + 14);
+    for (const e of endYs) svg.append('text').attr('class', 'ut-strong').attr('x', W - m.r + 6).attr('y', e.y + 4).style('fill', e.s.c).text(`${e.s.name} ${f1_(e.v)}`);
+    const t = tip_(el);
+    svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.l - m.r).attr('height', H - m.t - m.b).attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        const [px] = d3.pointer(ev);
+        const dt = x.invert(px);
+        const r = rows.reduce((a, b) => (Math.abs(monthDate(b.month) - dt) < Math.abs(monthDate(a.month) - dt) ? b : a));
+        t.hidden = false; t.innerHTML = '';
+        const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = d3.utcFormat('%b %Y')(monthDate(r.month));
+        t.append(k);
+        for (const s of series) {
+          const line = document.createElement('div');
+          const sw = document.createElement('i'); sw.className = 'ut-sw'; sw.style.background = s.c;
+          line.append(sw, ` ${s.name}: ${f1_(n_(r[s.k]))} per armored vehicle`);
+          t.append(line);
+        }
+        const sx = el.clientWidth / W; place_(t, el, px * sx, m.t);
+      })
+      .on('pointerleave', () => { t.hidden = true; });
+  });
+
+  dash.draw('shift', (el) => {
+    el.replaceChildren();
+    const d = dash.data('monthly'), sp = dash.data('shift_points');
+    if (d.status !== 'ok' || sp.status !== 'ok') { el.textContent = '—'; return; }
+    const cls = el.dataset.cls, key = `${cls}_per_day`;
+    const rows = d.data.filter((r) => r.complete === 'True' && n_(r[key]) > 0);
+    const breaks = sp.data.filter((b) => b.equipment_class === cls);
+    const W = el.clientWidth || 260, H = 144, m = { t: 16, r: 6, b: 18, l: 30 };
+    const x = d3.scaleUtc(d3.extent(rows, (r) => monthDate(r.month)), [m.l, W - m.r]);
+    const y = d3.scaleLog(d3.extent(rows, (r) => n_(r[key])), [H - m.b, m.t]).nice();
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const ticks = y.ticks(3).filter((v, i, a) => a.length <= 4 || [1, 10, 100, 1000].includes(v));
+    svg.append('g').selectAll('line').data(ticks).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('text').data(ticks).join('text').attr('x', m.l - 4).attr('y', (v) => y(v) + 4).attr('text-anchor', 'end').text(d3.format('~s'));
+    svg.append('text').attr('x', m.l).attr('y', H - 4).text(rows[0].month.slice(0, 4));
+    svg.append('text').attr('x', W - m.r).attr('y', H - 4).attr('text-anchor', 'end').text(rows.at(-1).month.slice(0, 4));
+    svg.append('path').datum(rows).attr('fill', 'none').attr('stroke', dash.colors[0]).attr('stroke-width', 1.5).attr('stroke-linejoin', 'round')
+      .attr('d', d3.line((r) => x(monthDate(r.month)), (r) => y(n_(r[key]))));
+    const t = tip_(el);
+    const bg = svg.append('g').selectAll('g').data(breaks).join('g').style('cursor', 'help');
+    bg.append('line').attr('x1', (b) => x(monthDate(b.month))).attr('x2', (b) => x(monthDate(b.month))).attr('y1', m.t).attr('y2', H - m.b)
+      .attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '3 3');
+    bg.append('circle').attr('cx', (b) => x(monthDate(b.month))).attr('cy', m.t - 4).attr('r', 4).attr('fill', 'var(--color-fg)');
+    bg.append('rect').attr('x', (b) => x(monthDate(b.month)) - 8).attr('y', 0).attr('width', 16).attr('height', H).attr('fill', 'transparent')
+      .on('pointerenter', (ev, b) => {
+        t.hidden = false; t.innerHTML = '';
+        const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = `Shift in ${d3.utcFormat('%b %Y')(monthDate(b.month))}`;
+        const a = document.createElement('div'); a.textContent = `Trend ${pct(b.trend_before_pct_month)} a month before, ${pct(b.trend_after_pct_month)} after`;
+        const r = document.createElement('div'); r.textContent = `${f1_(n_(b.rate_before))} to ${f1_(n_(b.rate_after))} per day`;
+        t.append(k, a, r);
+        if (b.nearby) { const e = document.createElement('div'); e.className = 'ut-tip-k'; e.textContent = `Nearby: ${b.nearby}`; t.append(e); }
+        const [px, py] = d3.pointer(ev, el); place_(t, el, px, py);
+      })
+      .on('pointerleave', () => { t.hidden = true; });
+  });
+
+  dash.draw('adapt', (el) => {
+    el.replaceChildren();
+    const d = dash.data('adaptation'), yr = dash.data('adaptation_by_year');
+    if (d.status !== 'ok' || yr.status !== 'ok') { el.textContent = '—'; return; }
+    const pts = d.data.flatMap((r) => [
+      r.months_to_spread !== '' ? { r, kind: 'spread', v: Number(r.months_to_spread) } : null,
+      r.months_to_counter !== '' ? { r, kind: 'counter', v: Number(r.months_to_counter) } : null,
+    ]).filter(Boolean);
+    const W = el.clientWidth || 600, H = 240, m = { t: 14, r: 16, b: 24, l: 34 };
+    const x = d3.scaleUtc([new Date('2022-06-01'), new Date('2026-06-01')], [m.l, W - m.r]);
+    const y = d3.scaleLinear([0, (d3.max(pts, (p) => p.v) || 1) * 1.1], [H - m.b, m.t]).nice();
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('text').data(y.ticks(4)).join('text').attr('x', m.l - 6).attr('y', (v) => y(v) + 4).attr('text-anchor', 'end').text((v) => `${v} mo`);
+    svg.append('g').selectAll('text').data(x.ticks(d3.utcYear.every(1))).join('text').attr('x', x).attr('y', H - 6).attr('text-anchor', 'middle').text(d3.utcFormat('%Y'));
+    for (const r of yr.data) {
+      const y0 = new Date(`${r.first_year}-01-15`), y1 = new Date(`${r.first_year}-12-15`);
+      const yy = y(Number(r.median_months_to_spread));
+      svg.append('line').attr('x1', x(y0)).attr('x2', x(y1)).attr('y1', yy).attr('y2', yy).attr('stroke', dash.colors[0]).attr('stroke-width', 1.5).attr('stroke-dasharray', '5 4').attr('opacity', 0.7);
+      svg.append('text').attr('x', x(y0)).attr('y', yy - 5).text(`median ${f1_(Number(r.median_months_to_spread))} mo, n=${r.tactics}`);
+    }
+    const t = tip_(el);
+    svg.append('g').selectAll('circle').data(pts).join('circle')
+      .attr('cx', (p) => x(new Date(p.r.first_seen))).attr('cy', (p) => y(p.v)).attr('r', 5)
+      .attr('fill', (p) => (p.kind === 'spread' ? dash.colors[0] : 'var(--color-panel)'))
+      .attr('stroke', (p) => (p.kind === 'spread' ? dash.colors[0] : dash.colors[3])).attr('stroke-width', 2)
+      .on('pointerenter', (ev, p) => {
+        t.hidden = false; t.innerHTML = '';
+        const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = `${p.r.subtype_label} · first seen ${p.r.first_seen}`;
+        const v = document.createElement('div'); v.textContent = p.kind === 'spread' ? `${f1_(p.v)} months to ${p.r.spread_phase}` : `${f1_(p.v)} months to countered`;
+        t.append(k, v);
+        const [px, py] = d3.pointer(ev, el); place_(t, el, px, py);
+      })
+      .on('pointerleave', () => { t.hidden = true; });
+  });
+
+  dash.draw('adapt-table', (tb) => {
+    tb.replaceChildren();
+    const d = dash.data('adaptation');
+    if (d.status !== 'ok') return;
+    for (const r of d.data.filter((r) => r.months_to_spread !== '' || r.months_to_counter !== '')) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.tactic_subtype;
+      for (const f of ['subtype_label', 'first_seen', 'first_phase', 'months_to_spread', 'months_to_counter']) {
+        const td = document.createElement('td'); td.textContent = r[f] === '' ? '—' : r[f]; tr.append(td);
+      }
+      tb.append(tr);
+    }
   });
 </script>

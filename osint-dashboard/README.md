@@ -36,9 +36,16 @@ python normalize.py rusi <pdf_url> "<title>" 2025-02-14
 python -m pytest
 ```
 
-`build` writes `observations.csv`, `losses_quarterly.csv`, `tactic_shift.csv`,
+`build` writes the trend tables from `ingest/trends.py` (`monthly.csv`, `trend_rates.csv`, `shift_points.csv`, `adaptation.csv`, `adaptation_by_year.csv`), plus `observations.csv`, `losses_quarterly.csv`, `tactic_shift.csv`,
 `oryx_models.csv`, `oryx_by_class.csv` and `claimed_vs_confirmed.csv` to `data/processed/`.
 To refresh the dashboard, upload the new CSVs to its Sources panel.
+
+## Trend methods
+
+- **Growth and decline:** a least-squares fit of ln(per-day losses) against month, over the last 12 complete months and the 12 before. Reported as % per quarter, doubling or halving time, and R². Fits with R² below 0.3 are shown as no clear trend.
+- **Shift points:** binary segmentation of the monthly log-rate into straight-line segments of at least 6 months, with at most 3 breaks per series. A break is kept only if it removes at least 25% of the segment's squared error. Each break lists the observations within ±3 months.
+- **Fires and logistics vs maneuver:** 3-month rolling sums of artillery and rocket launchers, logistics vehicles, and drones, each divided by tanks plus armored vehicles.
+- **Adaptation speed:** months from a tactic's first observation to its first report at a higher stage (emerging, then scaling, then dominant), and to its first countered or declining report.
 
 ## Known gaps
 

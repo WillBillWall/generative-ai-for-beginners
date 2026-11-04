@@ -1,0 +1,19 @@
+tactic_subtype,subtype_label,category_label,sides,observations,first_seen,first_phase,first_year,spread_phase,months_to_spread,months_to_counter
+mechanized_assault,Armored / mechanized assault,Assault tactics,RU/UA,2,2022-11-30,declining,2022,,,9.1
+artillery_spotting,Drone-directed artillery fire,Recon drones,both,1,2022-11-30,scaling,2022,,,
+jamming,Radio-frequency jamming of drones,EW & counter-drone,RU/UA/both,3,2023-05-19,scaling,2023,,,25.3
+artillery,Tube and rocket artillery,Fires,RU,1,2023-05-19,dominant,2023,,,
+attritional_infantry,"Stratified, attritional infantry assaults",Assault tactics,RU/both,2,2023-05-19,scaling,2023,dominant,20.5,
+signature_management,Thermal/visual camouflage against sensors,EW & counter-drone,RU,1,2023-05-19,emerging,2023,,,
+dedicated_drone_branch,Separate drone service or elite drone center,Force structure,RU/UA,3,2024-02-06,emerging,2024,scaling,4.1,
+glide_bomb,Air-launched guided glide bombs (KAB/UMPK),Fires,RU,3,2024-03-12,scaling,2024,dominant,10.7,
+uav_complex,Integrated recon-strike drone formation,Strike drones,both,1,2024-04-01,scaling,2024,,,
+robot_only_assault,Assault conducted without infantry,Ground robots,UA,2,2024-12-01,emerging,2024,scaling,2.0,
+fiber_optic_fpv,Fiber-optic-guided FPV (jam-resistant),Strike drones,RU/both,2,2025-01-09,emerging,2025,scaling,4.3,
+interceptor_drone,Drone used to destroy drones,EW & counter-drone,UA,2,2025-04-09,emerging,2025,dominant,15.8,
+motorcycle_light_vehicle,Motorcycle / light vehicle assaults,Assault tactics,RU,2,2025-04-27,scaling,2025,dominant,2.2,
+operator_hunting,Targeting drone crews and their command posts,EW & counter-drone,UA,1,2025-08-01,scaling,2025,,,
+drone_ambush,Drones loitering or perched on supply routes,Logistics interdiction,RU,1,2025-11-01,emerging,2025,,,
+small_group_infiltration,Small dismounted groups infiltrating,Assault tactics,RU,3,2025-11-06,dominant,2025,,,
+kill_zone,Drone-saturated zone behind the line of contact,Logistics interdiction,RU/both,2,2026-01-01,countered,2026,,,
+drone_c2_strike,Strikes on drone units' bases and command,Logistics interdiction,UA,1,2026-03-18,scaling,2026,,,

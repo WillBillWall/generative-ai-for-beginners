@@ -53,3 +53,20 @@
 **RUSI role (confirmed by user):** RUSI papers are expert assessments (`evidence = assessed`) that go on the timeline and in the context notes. They never feed loss counts, and a test enforces this. There are 11 RUSI rows covering Nov 2022–Feb 2025; later RUSI work found so far is secondary or undated. The dashboard has a RUSI-only filter.
 
 **Open:** allow network access to understandingwar.org, criticalthreats.org, rusi.org and ukr.warspotting.net, and add an Anthropic API key, so live ingest can run. Also add a Ukrainian loss series and ISW terrain data.
+
+# Trend analysis (requested 2026-11-04)
+
+- [x] `ingest/trends.py`: monthly per-day loss rates from the daily MoD series (shares the quarterly logic)
+- [x] Growth/decline: log-linear fit per class, last 12 months vs the 12 before: % per quarter, doubling/halving time, R², year-over-year change
+- [x] Shift points: binary segmentation of monthly log-rates (min 6-month segments, at most 3 breaks), each matched to tactic observations within ±3 months
+- [x] Fires vs maneuver: artillery+MRL per armored vehicle, logistics vehicles per armored vehicle, drones per armored vehicle (monthly, 3-month rolling)
+- [x] Adaptation speed: per tactic, months from first observation to first scaling, dominant and countered report
+- [x] Tests for each calculation on synthetic series with known answers
+- [x] Dashboard: one "Trends" section with four cards, every number from a dataset
+
+## Trend review
+- Last 12 months (Nov 2025–Oct 2026), as % change per quarter: drones +52.6% (doubling about every 4.9 months), logistics vehicles +63.9%, artillery +24.7%, tanks -6.2% (weak fit). In the 12 months before, armored vehicles fell 43.8% a quarter.
+- Losses per armored vehicle destroyed: logistics vehicles rose from 0.4 (2022) to about 52 now, and artillery/rockets from 0.1 to about 6.
+- 11 shift points found. The May 2025 drops in tank and armored-vehicle losses line up with the spread of motorcycle assaults, fiber-optic FPVs and interceptors. The January 2026 jump in drone losses may partly reflect a change in what the ministry counts.
+- Adaptation speed: the median time for a tactic to spread fell from 20.5 months (2023, n=1) to about 4 months (2024 and 2025, n=3 each). This is indicative only.
+- 13 tests pass, including known-answer tests for the trend fit, segmentation, monthly rates and adaptation. A float-noise bug in segmentation was caught by these tests and fixed.

@@ -85,11 +85,11 @@ def fetch_json(url: str, cache_name: str, refresh: bool) -> list:
     return json.loads(path.read_text())
 
 
-def ua_mod_quarterly(records: list[dict]) -> list[dict]:
-    """Daily cumulative totals -> per-quarter increments per equipment class.
+def ua_mod_daily_deltas(records: list[dict]) -> list[tuple[str, str, int]]:
+    """Daily cumulative totals -> (date, equipment class, losses that day).
 
     Cumulative series can dip when the MoD corrects a figure; negative daily
-    deltas are kept so quarterly sums still equal the change in the total.
+    deltas are kept so period sums still equal the change in the total.
     A class first reported after day one (e.g. ground robotic systems from
     2026-05-03) arrives with a back-filled cumulative total; that first value
     is a baseline, not losses on that day, so it is not counted.
@@ -97,18 +97,26 @@ def ua_mod_quarterly(records: list[dict]) -> list[dict]:
     records = sorted(records, key=lambda r: r["date"])
     first_day = records[0]["date"] if records else None
     prev: dict[str, int] = {}
-    totals: dict[tuple[str, str], int] = defaultdict(int)
+    out = []
     for rec in records:
         day_totals: dict[str, int] = defaultdict(int)
         for field, cls in UA_MOD_FIELDS.items():
             v = rec.get(field)
             if isinstance(v, (int, float)):
                 day_totals[cls] += int(v)
-        q = quarter_of(rec["date"])
         for cls, total in day_totals.items():
             baseline = cls not in prev and rec["date"] != first_day
-            totals[(q, cls)] += 0 if baseline else total - prev.get(cls, 0)
+            out.append((rec["date"], cls, 0 if baseline else total - prev.get(cls, 0)))
             prev[cls] = total
+    return out
+
+
+def ua_mod_quarterly(records: list[dict]) -> list[dict]:
+    """Daily cumulative totals -> per-quarter increments per equipment class."""
+    records = sorted(records, key=lambda r: r["date"])
+    totals: dict[tuple[str, str], int] = defaultdict(int)
+    for day, cls, n in ua_mod_daily_deltas(records):
+        totals[(quarter_of(day), cls)] += n
     last = records[-1]["date"] if records else None
     rows = []
     for (q, cls), n in sorted(totals.items()):

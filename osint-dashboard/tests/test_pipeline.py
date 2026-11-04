@@ -114,3 +114,49 @@ def test_rusi_is_assessed_context_never_counts():
            "model": "*", "count": 1, "source_org": "RUSI", "method": "claimed", "source_url": "https://rusi.org/"}
     with pytest.raises(normalize.ValidationError):
         normalize.validate_loss(bad)
+
+
+# --- trend analysis -------------------------------------------------------
+from ingest import trends
+
+
+def test_log_trend_known_growth():
+    rates = [10 * 2 ** (i / 3) for i in range(12)]          # doubles every 3 months
+    fit = trends.log_trend(rates)
+    assert fit["per_quarter_pct"] == pytest.approx(100.0, abs=0.1)
+    assert fit["doubling_months"] == pytest.approx(3.0, abs=0.05)
+    assert fit["r2"] == pytest.approx(1.0)
+    falling = trends.log_trend([100 * 0.5 ** (i / 6) for i in range(12)])
+    assert falling["doubling_months"] == pytest.approx(-6.0, abs=0.05)  # halving time
+
+
+def test_segment_finds_known_break():
+    y = [0.0] * 12 + [3.0 + 0.1 * i for i in range(12)]
+    assert trends.segment(y) == [12]
+    assert trends.segment([0.1 * i for i in range(24)]) == []   # straight line: no break
+
+
+def test_monthly_rates_days_and_ratios():
+    recs = [{"date": "2022-02-25", "tank": 10, "APC": 10, "field artillery": 5, "MRL": 5, "drone": 0},
+            {"date": "2022-02-28", "tank": 20, "APC": 20, "field artillery": 10, "MRL": 10, "drone": 4},
+            {"date": "2022-03-31", "tank": 51, "APC": 20, "field artillery": 10, "MRL": 10, "drone": 4}]
+    feb, mar = trends.monthly_rates(recs)
+    assert (feb["days"], feb["complete"]) == (5, False)      # 24-28 Feb
+    assert feb["tank_per_day"] == 4.0
+    assert (mar["days"], mar["complete"]) == (31, True)
+    assert mar["tank_per_day"] == 1.0
+    assert feb["fires_per_armor_3m"] == 0.5                  # (10+10)/(20+20)
+
+
+def test_adaptation_timing():
+    base = {"subtype_label": "x", "category_label": "y", "side": "RU"}
+    obs = [dict(base, tactic_subtype="a", date="2024-01-01", phase="emerging"),
+           dict(base, tactic_subtype="a", date="2024-07-01", phase="scaling"),
+           dict(base, tactic_subtype="a", date="2025-01-01", phase="countered"),
+           dict(base, tactic_subtype="b", date="2024-03-01", phase="dominant"),
+           dict(base, tactic_subtype="b", date="2024-05-01", phase="scaling")]
+    a, b = trends.adaptation(obs)
+    assert a["months_to_spread"] == pytest.approx(6.0, abs=0.1)
+    assert a["months_to_counter"] == pytest.approx(12.0, abs=0.1)
+    assert b["months_to_spread"] is None                     # never reached a higher stage
+    assert trends.adaptation_by_year([a, b]) == [{"first_year": 2024, "tactics": 1, "median_months_to_spread": 6.0}]
