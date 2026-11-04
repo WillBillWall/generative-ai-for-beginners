@@ -50,4 +50,6 @@
 - Claimed Russian drones downed per armored vehicle destroyed rose from 0.2 (2022 Q2) to about 170 (2026 Q3).
 - On 2023-02-05, MoD claims ran 1.9× Oryx-confirmed losses for tanks and 4.5× for artillery.
 
+**RUSI role (confirmed by user):** RUSI papers are expert assessments (`evidence = assessed`) that go on the timeline and in the context notes. They never feed loss counts, and a test enforces this. There are 11 RUSI rows covering Nov 2022–Feb 2025; later RUSI work found so far is secondary or undated. The dashboard has a RUSI-only filter.
+
 **Open:** allow network access to understandingwar.org, criticalthreats.org, rusi.org and ukr.warspotting.net, and add an Anthropic API key, so live ingest can run. Also add a Ukrainian loss series and ISW terrain data.

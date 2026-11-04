@@ -24,6 +24,10 @@ from ingest import losses
 from ingest.common import DATA, PROCESSED, SCHEMA, SEED, quarter_of, taxonomy
 
 EXTRACTED = DATA / "extracted"
+# RUSI and ISW are analytic sources: their rows are expert assessments that go on
+# the tactic timeline. They never feed loss counts, which come only from loss
+# trackers (see losses.schema.json source_org).
+ASSESSED_ORGS = {"ISW", "RUSI", "Other think tank"}
 OBS_FIELDS = json.loads((SCHEMA / "observation.schema.json").read_text())["required"]
 
 
@@ -117,6 +121,7 @@ def build(refresh: bool = False) -> dict[str, int]:
         r["quarter"] = quarter_of(r["date"])
         r["category_label"] = cats[r["tactic_category"]]["label"]
         r["subtype_label"] = cats[r["tactic_category"]]["subtypes"][r["tactic_subtype"]]
+        r["evidence"] = "assessed" if r["source_org"] in ASSESSED_ORGS else "reported"
     loss_rows = [validate_loss(r) for r in losses.run(refresh=refresh)]
     mod = [r for r in loss_rows if r["source_org"] == "UA MoD"]
     oryx = [r for r in loss_rows if r["source_org"] == "Oryx"]

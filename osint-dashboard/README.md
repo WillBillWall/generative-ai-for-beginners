@@ -13,9 +13,9 @@ Live dashboard: https://claude.ai/artifact/TgMA151TVV89RJkWmBQi8q (private until
 | Ukraine MoD daily totals (via [PetroIvaniuk mirror](https://github.com/PetroIvaniuk/2022-Ukraine-Russia-War-Dataset)) | Russian loss rates by quarter | `ingest/losses.py` | claimed |
 | Oryx (same mirror, snapshot of 2023-02-05) | Visually confirmed Russian losses, by model | `ingest/losses.py` | visually confirmed |
 | WarSpotting API | Dated confirmed losses for both sides | `ingest/losses.py` (`fetch_warspotting`) | visually confirmed |
-| ISW daily assessments | Tactical observations | `ingest/reports.py` and Claude extraction | analytic |
-| RUSI papers | Tactical evolution, EW, drones | `ingest/reports.py` and Claude extraction | analytic |
-| Curated seed | 32 observations Feb 2022–Oct 2026 | `data/seed/observations.csv` | analytic |
+| ISW daily assessments | Tactical observations | `ingest/reports.py` and Claude extraction | assessed |
+| RUSI papers | Expert assessments of how tactics evolve (EW, drones, assaults); timeline and context only, never loss counts | `ingest/reports.py` and Claude extraction | assessed |
+| Curated seed | 33 observations Feb 2022–Oct 2026 | `data/seed/observations.csv` | analytic |
 
 ## The data model
 

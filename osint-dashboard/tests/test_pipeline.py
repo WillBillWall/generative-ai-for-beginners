@@ -102,3 +102,15 @@ def test_extract_with_fake_client():
     assert captured["output_config"]["format"]["type"] == "json_schema"
     row = dict(rows[0], id=normalize.obs_id(rows[0]))
     normalize.validate_observation(row)
+
+
+def test_rusi_is_assessed_context_never_counts():
+    normalize.build()
+    import csv
+    rows = list(csv.DictReader((normalize.PROCESSED / "observations.csv").open()))
+    rusi = [r for r in rows if r["source_org"] == "RUSI"]
+    assert rusi and all(r["evidence"] == "assessed" for r in rusi)
+    bad = {"period_start": "2024-01-01", "period_end": "2024-03-31", "side": "RU", "equipment_class": "tank",
+           "model": "*", "count": 1, "source_org": "RUSI", "method": "claimed", "source_url": "https://rusi.org/"}
+    with pytest.raises(normalize.ValidationError):
+        normalize.validate_loss(bad)

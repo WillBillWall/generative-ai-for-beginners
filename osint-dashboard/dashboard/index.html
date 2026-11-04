@@ -29,6 +29,7 @@
   .ut-chip { font: inherit; font-size: var(--cds-font-size-caption); padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: 999px; background: var(--color-bg); color: var(--color-fg); cursor: pointer; }
   .ut-chip[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
   .ut-chip:focus-visible, .ut-search:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+  .ut-sep { width: 1px; align-self: stretch; background: var(--color-border-line); margin-inline: var(--cds-gap-xs); }
   .ut-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-left: auto; }
   .ut-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
   .ut-sw { width: 0.6rem; height: 0.6rem; border-radius: 50%; display: inline-block; }
@@ -98,6 +99,11 @@
         <button type="button" class="ut-chip" data-side="all" aria-pressed="true">Both sides</button>
         <button type="button" class="ut-chip" data-side="RU" aria-pressed="false">Russia</button>
         <button type="button" class="ut-chip" data-side="UA" aria-pressed="false">Ukraine</button>
+        <span class="ut-sep" aria-hidden="true"></span>
+        <button type="button" class="ut-chip" data-src="all" aria-pressed="true">All sources</button>
+        <button type="button" class="ut-chip" data-src="RUSI" aria-pressed="false">RUSI</button>
+        <button type="button" class="ut-chip" data-src="ISW" aria-pressed="false">ISW</button>
+        <button type="button" class="ut-chip" data-src="other" aria-pressed="false">News and others</button>
         <div class="ut-legend">
           <span><i class="ut-sw" data-phase-swatch="0"></i>Emerging</span>
           <span><i class="ut-sw" data-phase-swatch="1"></i>Scaling</span>
@@ -106,7 +112,7 @@
           <span><i class="ut-sw" data-phase-swatch="4"></i>Declining</span>
         </div>
       </div>
-      <p class="ut-note">Each dot is one dated observation from ISW, RUSI or other open sources, placed by date and colored by the tactic's phase at that time. Hollow dots were read in coverage of the source rather than the source itself. Select a dot for its summary and link.</p>
+      <p class="ut-note">Each dot is one dated observation from ISW, RUSI or other open sources, placed by date and colored by the tactic's phase at that time. RUSI and ISW items are expert assessments that explain how and why tactics change; they place tactics on the timeline and never feed the loss counts. News items are reports. Hollow dots were read in coverage of the source rather than the source itself. Select a dot for its summary and link.</p>
       <div class="ut-timeline" data-draw="timeline" data-source="observations"></div>
       <div class="ut-detail" data-draw="detail" data-source="observations">—</div>
     </div>
@@ -138,6 +144,7 @@
             <th data-field="phase">Phase</th>
             <th data-field="summary">What the source says</th>
             <th data-field="source_title" class="ut-hide-narrow">Source</th>
+            <th data-field="evidence" class="ut-hide-narrow">Evidence</th>
             <th data-field="confidence" class="ut-hide-narrow">Confidence</th>
           </tr></thead>
           <tbody data-draw="obs-table"></tbody>
@@ -328,6 +335,14 @@
   const PHASES = ['emerging', 'scaling', 'dominant', 'countered', 'declining'];
   const CATEGORY_ORDER = ['uas_strike', 'uas_isr', 'ugv', 'ew_counter_uas', 'assault', 'fires', 'logistics_interdiction', 'force_structure'];
   window.utState = window.utState || { side: 'all', selected: null, query: '' };
+  window.utState.src = window.utState.src || 'all';
+  for (const b of document.querySelectorAll('[data-src]')) {
+    b.addEventListener('click', () => {
+      window.utState.src = b.dataset.src;
+      for (const o of document.querySelectorAll('[data-src]')) o.setAttribute('aria-pressed', String(o === b));
+      dash.draw('timeline');
+    });
+  }
 
   for (const b of document.querySelectorAll('[data-side]')) {
     b.addEventListener('click', () => {
@@ -340,7 +355,13 @@
     s.addEventListener('input', () => { window.utState.query = s.value.trim().toLowerCase(); dash.draw('obs-table'); });
   }
 
-  const visible = (rows) => rows.filter((r) => window.utState.side === 'all' || r.side === window.utState.side || r.side === 'both');
+  const srcOk = (r) => {
+    const s = window.utState.src;
+    if (s === 'all') return true;
+    if (s === 'other') return r.source_org !== 'RUSI' && r.source_org !== 'ISW';
+    return r.source_org === s;
+  };
+  const visible = (rows) => rows.filter((r) => (window.utState.side === 'all' || r.side === window.utState.side || r.side === 'both') && srcOk(r));
 
   dash.draw('timeline', (el) => {
     el.replaceChildren();
@@ -402,7 +423,7 @@
     el.replaceChildren();
     if (!r) { el.textContent = d.status === 'ok' ? 'Select a dot to see the observation.' : '—'; return; }
     const head = document.createElement('div'); head.className = 'ut-tip-k';
-    head.textContent = `${r.date} · ${r.side === 'both' ? 'Both sides' : r.side} · ${r.sector}${r.unit ? ' · ' + r.unit : ''} · ${r.category_label}: ${r.subtype_label} · ${r.phase} · ${r.confidence} confidence`;
+    head.textContent = `${r.date} · ${r.side === 'both' ? 'Both sides' : r.side} · ${r.sector}${r.unit ? ' · ' + r.unit : ''} · ${r.category_label}: ${r.subtype_label} · ${r.phase} · ${r.evidence} · ${r.confidence} confidence`;
     const body = document.createElement('div'); body.textContent = r.summary;
     const a = document.createElement('a'); a.href = r.source_url; a.target = '_blank'; a.rel = 'noopener';
     a.textContent = `${r.source_org}: ${r.source_title}${r.access === 'secondary' ? ' (via coverage)' : ''}`;
@@ -424,6 +445,7 @@
       const src = document.createElement('td'); src.className = 'ut-hide-narrow';
       const a = document.createElement('a'); a.href = r.source_url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = r.source_title;
       src.append(a); tr.append(src);
+      const ev = document.createElement('td'); ev.className = 'ut-hide-narrow'; ev.textContent = r.evidence; tr.append(ev);
       const c = document.createElement('td'); c.className = 'ut-hide-narrow'; c.textContent = r.confidence; tr.append(c);
       tb.append(tr);
     }
