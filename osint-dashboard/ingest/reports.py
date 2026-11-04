@@ -14,7 +14,6 @@ import io
 from datetime import date
 
 from bs4 import BeautifulSoup
-from pypdf import PdfReader
 
 from .common import RAW, polite_get
 from .extract import extract_observations
@@ -36,6 +35,9 @@ def html_to_text(html: str) -> str:
 
 
 def pdf_to_text(data: bytes) -> str:
+    # Imported here: pypdf pulls in `cryptography`, which is broken in some fresh
+    # containers; only RUSI PDF parsing needs it, so it must not block the daily refresh.
+    from pypdf import PdfReader
     return "\n".join(page.extract_text() or "" for page in PdfReader(io.BytesIO(data)).pages)
 
 

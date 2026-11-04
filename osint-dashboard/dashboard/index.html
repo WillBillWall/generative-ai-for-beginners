@@ -3,6 +3,9 @@
   .ut { display: grid; gap: var(--cds-gap-xl); font-family: var(--font-anthropic-sans); }
   .ut-head { display: grid; gap: var(--cds-gap-sm); max-width: 62rem; }
   .ut-title { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+  .ut-eyebrow { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); letter-spacing: 0.02em; }
+  .ut-summary { display: grid; gap: var(--cds-gap-sm); max-width: 68ch; }
+  .ut-summary p { margin: 0; line-height: 1.55; }
   .ut-lede { margin: 0; color: var(--color-fg-muted); max-width: 65ch; }
   .ut b { font-weight: 600; color: var(--color-fg); }
   .ut-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--cds-gap-md); }
@@ -56,7 +59,13 @@
 <div class="ut">
   <header class="ut-head">
     <h1 class="ut-title">Ukraine War Tactics Tracker</h1>
-    <p class="ut-lede">Ukraine's Ministry of Defence reported <b data-draw="h-uav">—</b> Russian drones downed per day in <b data-draw="h-q">—</b>, against <b data-draw="h-uav0">—</b> a day in spring 2022: <b data-draw="h-mult">—</b> as many. Tanks destroyed fell from <b data-draw="h-tank0">—</b> to <b data-draw="h-tank">—</b> a day. The fighting has moved from armor to drones, and the sections below show how each side adapted.</p>
+    <p class="ut-eyebrow">Current picture · assessment written 4 November 2026 · figures update daily</p>
+    <div class="ut-summary">
+      <p>Drones now dominate the fighting. Ukraine reports downing <b data-draw="now-uav" data-source="now_summary" data-field="uav_index">—</b> as many Russian drones a day as in spring 2022, while Russian tank losses are down to <b data-draw="now-tank" data-source="now_summary" data-field="tank_index">—</b> of that level, as armor is held back from a drone-saturated zone that ISW says now reaches tens of kilometres behind the front.</p>
+      <p>Russia attacks mainly with small infantry groups, on foot or on motorcycles, that infiltrate once drones have cut the supply routes. ISW says this method took Pokrovsk in February 2026 and is now being tried at Dobropillya.</p>
+      <p>Both sides go after each other's logistics and drone crews. Russian logistics-vehicle losses are <b data-draw="now-veh" data-source="now_summary" data-field="vehicles_index">—</b> their spring 2022 level, and Ukrainian jamming, interceptor drones and strikes on the Rubikon drone unit have limited Russian drone use, pushing Russia toward heavier glide bombs.</p>
+      <p>The front line has nearly stopped moving: Russia's net gain was <b data-draw="now-terr" data-source="territory_30d" data-field="net_km2">—</b> in the last 30 days, about <b data-draw="now-rate" data-source="territory_30d" data-field="per_day">—</b> km² a day, against <b data-draw="now-mid25" data-source="territory_monthly" data-field="km2_per_day" data-where="month=2025-07">—</b> km² a day in July 2025. On this evidence the front is slow and attritional, and defending currently has the advantage over attacking.</p>
+    </div>
   </header>
 
   <div class="ut-tiles">
@@ -275,7 +284,19 @@
       const back = (iso, n) => { const d = new Date(iso); d.setUTCDate(d.getUTCDate() - n); return d.toISOString().slice(0, 10); };
       const near = (iso) => { for (let i = 0; i < 5; i++) { const k = back(iso, i); if (byDate.has(k)) return byDate.get(k); } return null; };
       const now = Number(last.occupied_km2), m30 = near(back(last.date, 30)), m60 = near(back(last.date, 60));
-      return [{ to_date: last.date, net_km2: m30 == null ? null : Math.round(now - m30), prev_net_km2: m30 == null || m60 == null ? null : Math.round(m30 - m60) }];
+      return [{ to_date: last.date, net_km2: m30 == null ? null : Math.round(now - m30), per_day: m30 == null ? null : Math.round((now - m30) / 3) / 10, prev_net_km2: m30 == null || m60 == null ? null : Math.round(m30 - m60) }];
+    },
+  });
+
+  dash.calc('now_summary', {
+    title: 'Latest growth index',
+    description: 'Growth index (1 = average daily rate in Apr–Jun 2022) for drones, tanks and logistics vehicles in the latest complete month, 3-month rolling.',
+    inputs: ['monthly'],
+    fn: (monthly) => {
+      const full = monthly.filter((r) => r.complete === 'True' || r.complete === true);
+      const last = full[full.length - 1];
+      if (!last) return [];
+      return [{ month: last.month, uav_index: Number(last.uav_index_3m), tank_index: Number(last.tank_index_3m), vehicles_index: Number(last.vehicles_index_3m) }];
     },
   });
 
@@ -291,13 +312,7 @@
 
   const headline = () => { const h = dash.data('headline'); return h.status === 'ok' && h.data.length ? h.data[0] : null; };
   const word = (name, pick) => dash.draw(name, (el) => { const h = headline(); el.textContent = h ? pick(h) : '—'; });
-  word('h-q', (h) => qLabel(h.quarter));
   word('t-q1', (h) => qLabel(h.quarter));
-  word('h-uav', (h) => fmt0(h.uav_per_day));
-  word('h-uav0', (h) => fmt1(h.uav_per_day_2022q2));
-  word('h-mult', (h) => `${fmt0(h.uav_multiple)} times`);
-  word('h-tank0', (h) => fmt1(h.tanks_per_day_2022q2));
-  word('h-tank', (h) => fmt1(h.tanks_per_day));
   word('t-mult', (h) => `×${fmt0(h.uav_multiple)}`);
   word('t-uav', (h) => fmt0(h.uav_per_day));
   word('t-uav0', (h) => fmt1(h.uav_per_day_2022q2));
@@ -315,6 +330,23 @@
   });
   terr('t-terr', (r) => (r.net_km2 == null ? '—' : `${r.net_km2 >= 0 ? '+' : ''}${fmt0(r.net_km2)} km²`));
   terr('t-terr-prev', (r) => (r.prev_net_km2 == null ? '—' : `${r.prev_net_km2 >= 0 ? '+' : ''}${fmt0(r.prev_net_km2)}`));
+  const times = (v) => `${v >= 10 ? fmt0(v) : fmt1(v)} times`;
+  const share = (v) => `${fmt0(v * 100)}%`;
+  const nowWord = (name, field, show) => dash.draw(name, (el) => {
+    const d = dash.data('now_summary');
+    const r = d.status === 'ok' && d.data.length ? d.data[0] : null;
+    el.textContent = r && Number.isFinite(r[field]) ? show(r[field]) : '—';
+  });
+  nowWord('now-uav', 'uav_index', times);
+  nowWord('now-tank', 'tank_index', share);
+  nowWord('now-veh', 'vehicles_index', times);
+  terr('now-terr', (r) => (r.net_km2 == null ? '—' : `${fmt0(r.net_km2)} km²`));
+  terr('now-rate', (r) => (r.per_day == null ? '—' : fmt1(r.per_day)));
+  dash.draw('now-mid25', (el) => {
+    const d = dash.data('territory_monthly');
+    const r = d.status === 'ok' ? d.data.find((x) => x.month === '2025-07') : null;
+    el.textContent = r ? fmt1(Number(r.km2_per_day)) : '—';
+  });
   terr('t-terr-date', (r) => d3.utcFormat('%b %-d, %Y')(new Date(r.to_date)));
   summary('t-subtypes', 'subtypes');
 

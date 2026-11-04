@@ -8,3 +8,4 @@ pytest
 shapely
 pyproj
 numpy
+cffi
