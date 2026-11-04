@@ -1,0 +1,8 @@
+# Lessons
+
+## 2026-11-04: dashboard readability feedback
+- **No unexplained ratio metrics.** "Drones per armored vehicle destroyed" confused the reader. Show change against a plain baseline instead ("×10 compared with spring 2022") and say what the baseline is in the same sentence.
+- **Every mark says what it is.** In the adaptation chart, dots without per-tactic labels left the reader unable to tell what spread or what was countered. Label each item directly with its name and the result ("Fiber-optic FPV: spread in 4 months").
+- **Show states over time as bars, not scattered dots.** For lifecycle data, draw one row per tactic with colored segments for each stage ("scaling from May 2025 to now"). Scattered dots made readers decode the phase colors and the time gaps themselves.
+- **Before publishing a chart, ask: can someone who has never seen the data say what it shows in one sentence?** If not, simplify it or relabel it.
+- **Edit code by anchored definitions, never by bare substrings.** `dash.draw('timeline'` matched a call inside a click handler as well as the definition. Anchor on the line start plus the full signature, check that the count is exactly 1, and syntax-check after every scripted edit.

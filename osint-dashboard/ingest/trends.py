@@ -26,6 +26,8 @@ SHIFT_CLASSES = ["tank", "afv", "artillery", "uav", "vehicles"]
 SPREAD_ORDER = {"emerging": 0, "scaling": 1, "dominant": 2}
 COUNTER_PHASES = {"countered", "declining"}
 DAYS_PER_MONTH = 30.44
+INDEX_CLASSES = ["tank", "afv", "artillery", "vehicles", "uav"]
+BASELINE_MONTHS = ("2022-04", "2022-05", "2022-06")  # first full quarter of the war
 
 
 def _month_days(month: str, first: date, last: date) -> int:
@@ -46,6 +48,8 @@ def monthly_rates(records: list[dict]) -> list[dict]:
     for day, cls, n in deltas:
         counts[day[:7]][cls] += n
     months = sorted(counts)
+    base_days = sum(_month_days(m, WAR_START, last) for m in BASELINE_MONTHS)
+    baseline = {cls: sum(counts[m][cls] for m in BASELINE_MONTHS) / base_days for cls in INDEX_CLASSES}
     rows = []
     for i, mo in enumerate(months):
         days = _month_days(mo, WAR_START, last)
@@ -58,6 +62,9 @@ def monthly_rates(records: list[dict]) -> list[dict]:
         window = [counts[m] for m in months[max(0, i - 2): i + 1]]
         s = {cls: sum(w[cls] for w in window) for cls in RATE_CLASSES}
         armor = s["tank"] + s["afv"]
+        days3 = sum(_month_days(m, WAR_START, last) for m in months[max(0, i - 2): i + 1])
+        for cls in INDEX_CLASSES:
+            row[f"{cls}_index_3m"] = _ratio(s[cls] / days3, baseline[cls]) if baseline.get(cls) else None
         row["fires_per_armor_3m"] = _ratio(s["artillery"] + s["mrl"], armor)
         row["vehicles_per_armor_3m"] = _ratio(s["vehicles"], armor)
         row["drones_per_armor_3m"] = _ratio(s["uav"], armor)
@@ -193,6 +200,11 @@ def adaptation(observations: list[dict]) -> list[dict]:
             "spread_phase": spread["phase"] if spread else "",
             "months_to_spread": round(_months_between(first["date"], spread["date"]), 1) if spread else None,
             "months_to_counter": round(_months_between(first["date"], counter["date"]), 1) if counter else None,
+            "first_summary": first.get("summary", ""),
+            "spread_date": spread["date"] if spread else "",
+            "spread_summary": spread.get("summary", "") if spread else "",
+            "counter_date": counter["date"] if counter else "",
+            "counter_summary": counter.get("summary", "") if counter else "",
         })
     return sorted(rows, key=lambda r: r["first_seen"])
 

@@ -70,3 +70,15 @@
 - 11 shift points found. The May 2025 drops in tank and armored-vehicle losses line up with the spread of motorcycle assaults, fiber-optic FPVs and interceptors. The January 2026 jump in drone losses may partly reflect a change in what the ministry counts.
 - Adaptation speed: the median time for a tactic to spread fell from 20.5 months (2023, n=1) to about 4 months (2024 and 2025, n=3 each). This is indicative only.
 - 13 tests pass, including known-answer tests for the trend fit, segmentation, monthly rates and adaptation. A float-noise bug in segmentation was caught by these tests and fixed.
+
+# Readability fixes (feedback 2026-11-04)
+- [x] Replace "per armored vehicle destroyed" everywhere with a growth index (1 = average daily rate Apr–Jun 2022), with direct end labels (e.g. "Drones ×280")
+- [x] Adaptation: one labeled row per tactic, showing first seen → spread → countered on a shared time axis, the months written on the bar, and a table that names what countered it
+- [x] Timeline: swimlane bars colored by stage (each stage lasts until the next report), category headers, side tags, plain legend
+- [x] Answer: sources for daily updates, checked for reachability
+
+## Readability review
+- The growth index replaces every "per armored vehicle" ratio: headline, top tile, main chart, and the removed fires/logistics card. Current values: drones ×275, logistics vehicles ×30, artillery ×10, armored vehicles ×0.3, tanks ×0.2.
+- The adaptation chart now has one labeled row per tactic, with the months written on each bar and the counter-report text in the table. Tactics with no counter report no longer show as "0 months".
+- The timeline shows stage bars from one report to the next, under category headers, with side tags.
+- Mistake caught: a substring match hit `dash.draw('timeline')` inside a click handler and corrupted the script. Restored from git, redone with anchored matching, and syntax-checked. Lesson added.

@@ -160,3 +160,16 @@ def test_adaptation_timing():
     assert a["months_to_counter"] == pytest.approx(12.0, abs=0.1)
     assert b["months_to_spread"] is None                     # never reached a higher stage
     assert trends.adaptation_by_year([a, b]) == [{"first_year": 2024, "tactics": 1, "median_months_to_spread": 6.0}]
+
+
+def test_growth_index_baseline_is_spring_2022():
+    recs, total = [], 0
+    from datetime import date, timedelta
+    d = date(2022, 2, 25)
+    while d <= date(2022, 9, 30):
+        total += 2 if d < date(2022, 7, 1) else 6       # 2/day in spring, 6/day from July
+        recs.append({"date": d.isoformat(), "tank": total})
+        d += timedelta(days=1)
+    rows = {r["month"]: r for r in trends.monthly_rates(recs)}
+    assert rows["2022-06"]["tank_index_3m"] == 1.0
+    assert rows["2022-09"]["tank_index_3m"] == 3.0
