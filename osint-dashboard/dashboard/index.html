@@ -1,0 +1,457 @@
+<meta name="dash-one-writer">
+<style>
+  .ut { display: grid; gap: var(--cds-gap-xl); font-family: var(--font-anthropic-sans); }
+  .ut-head { display: grid; gap: var(--cds-gap-sm); max-width: 62rem; }
+  .ut-title { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+  .ut-lede { margin: 0; color: var(--color-fg-muted); max-width: 65ch; }
+  .ut b { font-weight: 600; color: var(--color-fg); }
+  .ut-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--cds-gap-md); }
+  .ut-tile { display: grid; gap: var(--cds-gap-xs); align-content: start; padding: var(--cds-pad-md) 0; border-top: 1px solid var(--color-border-line); }
+  .ut-tile-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .ut-tile-value { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .ut-tile-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .ut-section { display: grid; gap: var(--cds-gap-md); }
+  .ut-h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+  .ut-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-md); }
+  .ut-grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: var(--cds-gap-md); }
+  .ut-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-sm); align-content: start; min-width: 0; }
+  .ut-card h3 { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); margin: 0; }
+  .ut-note { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); max-width: 70ch; }
+  .ut-chart { position: relative; min-height: 15rem; }
+  .ut-mini { position: relative; min-height: 8rem; }
+  .ut-timeline { position: relative; min-height: 26rem; overflow-x: auto; }
+  .ut-claims { position: relative; min-height: 17rem; }
+  .ut svg text { fill: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); }
+  .ut svg .ut-strong { fill: var(--color-fg); font-weight: 600; }
+  .ut-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); max-width: 18rem; z-index: 2; }
+  .ut-tip-k { color: var(--cds-text-secondary); }
+  .ut-controls { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); align-items: center; }
+  .ut-chip { font: inherit; font-size: var(--cds-font-size-caption); padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: 999px; background: var(--color-bg); color: var(--color-fg); cursor: pointer; }
+  .ut-chip[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+  .ut-chip:focus-visible, .ut-search:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+  .ut-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-left: auto; }
+  .ut-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .ut-sw { width: 0.6rem; height: 0.6rem; border-radius: 50%; display: inline-block; }
+  .ut-detail { min-height: 4.5rem; font-size: var(--cds-font-size-caption); border-top: 1px solid var(--color-border-line); padding-top: var(--cds-pad-sm); }
+  .ut-search { font: inherit; font-size: var(--cds-font-size-caption); padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg); width: min(100%, 18rem); }
+  .ut-tablebox { max-height: 30rem; overflow: auto; }
+  .ut-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); }
+  .ut-table th { position: sticky; top: 0; background: var(--color-panel); text-align: left; font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); }
+  .ut-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); vertical-align: top; }
+  .ut-table td:first-child { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .ut-table a { color: inherit; }
+  .ut-caveats { margin: 0; padding-left: 1.1rem; display: grid; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); max-width: 75ch; }
+  [data-dash-source-state=empty] { color: transparent; }
+  [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+  @media (max-width: 40rem) { .ut-hide-narrow { display: none; } }
+</style>
+
+<div class="ut">
+  <header class="ut-head">
+    <h1 class="ut-title">Ukraine War Tactics Tracker</h1>
+    <p class="ut-lede">In <b data-draw="h-q">—</b>, Ukraine's Ministry of Defence reported <b data-draw="h-ratio">—</b> Russian drones downed for every Russian armored vehicle destroyed, against <b data-draw="h-ratio0">—</b> in 2022 Q2. The war has moved from armor to drones, and the tactics below show how each side adapted.</p>
+  </header>
+
+  <div class="ut-tiles">
+    <div class="ut-tile">
+      <span class="ut-tile-label">Drones downed per armored vehicle destroyed</span>
+      <span class="ut-tile-value" data-draw="t-ratio" data-source="headline" data-field="drones_per_armored_vehicle">—</span>
+      <span class="ut-tile-note">Latest full quarter, <span data-draw="t-q1">—</span> · UA MoD claims</span>
+    </div>
+    <div class="ut-tile">
+      <span class="ut-tile-label">Russian drones downed per day</span>
+      <span class="ut-tile-value" data-draw="t-uav" data-source="headline" data-field="uav_per_day">—</span>
+      <span class="ut-tile-note">Latest full quarter · was <span data-draw="t-uav0" data-source="headline" data-field="uav_per_day_2022q2">—</span> in 2022 Q2</span>
+    </div>
+    <div class="ut-tile">
+      <span class="ut-tile-label">Russian tanks destroyed per day</span>
+      <span class="ut-tile-value" data-draw="t-tank" data-source="headline" data-field="tanks_per_day">—</span>
+      <span class="ut-tile-note">Latest full quarter · was <span data-draw="t-tank0" data-source="headline" data-field="tanks_per_day_2022q2">—</span> in 2022 Q2</span>
+    </div>
+    <div class="ut-tile">
+      <span class="ut-tile-label">Tactical observations logged</span>
+      <span class="ut-tile-value" data-draw="t-obs" data-source="obs_summary" data-field="observations">—</span>
+      <span class="ut-tile-note"><span data-draw="t-subtypes" data-source="obs_summary" data-field="subtypes">—</span> tactics tracked, Feb 2022 to now</span>
+    </div>
+  </div>
+
+  <section class="ut-section" id="armor-to-drones">
+    <h2 class="ut-h2">From armor to drones</h2>
+    <div class="ut-card">
+      <h3>Russian drones downed per armored vehicle destroyed</h3>
+      <p class="ut-note">Ukrainian MoD claimed Russian losses, by quarter. Armored vehicles are tanks plus APC/IFV. The last point is the current quarter so far.</p>
+      <div class="ut-chart" data-draw="ratio" data-source="tactic_shift"></div>
+    </div>
+    <div class="ut-grid4">
+      <div class="ut-card"><h3>Tanks per day</h3><div class="ut-mini" data-draw="perday" data-metric="tanks_per_day" data-source="tactic_shift"></div></div>
+      <div class="ut-card"><h3>Armored vehicles per day</h3><div class="ut-mini" data-draw="perday" data-metric="afv_per_day" data-source="tactic_shift"></div></div>
+      <div class="ut-card"><h3>Artillery per day</h3><div class="ut-mini" data-draw="perday" data-metric="artillery_per_day" data-source="tactic_shift"></div></div>
+      <div class="ut-card"><h3>Drones per day</h3><div class="ut-mini" data-draw="perday" data-metric="uav_per_day" data-source="tactic_shift"></div></div>
+    </div>
+    <p class="ut-note">Each small chart has its own scale. Ground-robot losses have been reported only since 3 May 2026, so they are not charted yet.</p>
+  </section>
+
+  <section class="ut-section" id="tactic-timeline">
+    <h2 class="ut-h2">How tactics emerged, spread and were countered</h2>
+    <div class="ut-card">
+      <div class="ut-controls">
+        <button type="button" class="ut-chip" data-side="all" aria-pressed="true">Both sides</button>
+        <button type="button" class="ut-chip" data-side="RU" aria-pressed="false">Russia</button>
+        <button type="button" class="ut-chip" data-side="UA" aria-pressed="false">Ukraine</button>
+        <div class="ut-legend">
+          <span><i class="ut-sw" data-phase-swatch="0"></i>Emerging</span>
+          <span><i class="ut-sw" data-phase-swatch="1"></i>Scaling</span>
+          <span><i class="ut-sw" data-phase-swatch="2"></i>Dominant</span>
+          <span><i class="ut-sw" data-phase-swatch="3"></i>Countered</span>
+          <span><i class="ut-sw" data-phase-swatch="4"></i>Declining</span>
+        </div>
+      </div>
+      <p class="ut-note">Each dot is one dated observation from ISW, RUSI or other open sources, placed by date and colored by the tactic's phase at that time. Hollow dots were read in coverage of the source rather than the source itself. Select a dot for its summary and link.</p>
+      <div class="ut-timeline" data-draw="timeline" data-source="observations"></div>
+      <div class="ut-detail" data-draw="detail" data-source="observations">—</div>
+    </div>
+  </section>
+
+  <section class="ut-section" id="claims">
+    <h2 class="ut-h2">How far claims run ahead of confirmed losses</h2>
+    <div class="ut-card">
+      <h3>Russian losses claimed by Ukraine's MoD vs visually confirmed by Oryx</h3>
+      <p class="ut-note">Cumulative totals on 5 February 2023, the date of the last Oryx snapshot in the public mirror. Oryx only counts losses with photo or video evidence, so it is a floor; MoD claims are unverified. The multiple shows how many claimed losses there were per confirmed one.</p>
+      <div class="ut-legend">
+        <span><i class="ut-sw" data-claims-swatch="muted"></i>Claimed by UA MoD</span>
+        <span><i class="ut-sw" data-claims-swatch="accent"></i>Confirmed by Oryx</span>
+      </div>
+      <div class="ut-claims" data-draw="claims" data-source="claimed_vs_confirmed"></div>
+    </div>
+  </section>
+
+  <section class="ut-section" id="source-log">
+    <h2 class="ut-h2">Source log</h2>
+    <div class="ut-card">
+      <input class="ut-search" id="ut-search" type="search" placeholder="Search observations" aria-label="Search observations">
+      <div class="ut-tablebox">
+        <table class="ut-table" data-source="observations" data-row-key="id">
+          <thead><tr>
+            <th data-field="date">Date</th>
+            <th data-field="side">Side</th>
+            <th data-field="subtype_label">Tactic</th>
+            <th data-field="phase">Phase</th>
+            <th data-field="summary">What the source says</th>
+            <th data-field="source_title" class="ut-hide-narrow">Source</th>
+            <th data-field="confidence" class="ut-hide-narrow">Confidence</th>
+          </tr></thead>
+          <tbody data-draw="obs-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="ut-section" id="caveats">
+    <h2 class="ut-h2">Reading this data</h2>
+    <ul class="ut-caveats">
+      <li>Loss rates are Ukrainian MoD claims of Russian losses. They are unverified, biased upward, and cover one side only; read them as a trend, not a count.</li>
+      <li>Oryx and WarSpotting count only visually confirmed losses, so they undercount. The Oryx figures here come from a mirror last updated in February 2023.</li>
+      <li>Observations are paraphrased from ISW, RUSI and news coverage. Many ISW items were read through news reports of its assessments and are marked as secondary.</li>
+      <li>ISW and RUSI write from a Western perspective with significant Ukrainian access; Russian-side tactics are often described through Ukrainian reporting.</li>
+      <li>Unit names are recorded only where a source gives them, and attributions sometimes conflict.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+  const num = (v) => (v === '' || v == null ? null : Number(v));
+  const fmt1 = d3.format(',.1f');
+  const fmt0 = d3.format(',.0f');
+  const qLabel = (q) => q ? `${q.slice(0, 4)} ${q.slice(4)}` : '—';
+  const qDate = (q) => new Date(Date.UTC(+q.slice(0, 4), (+q.slice(5) - 1) * 3 + 1, 15));
+  window.utFmt = { num, fmt1, fmt0, qLabel, qDate };
+
+  dash.calc('headline', {
+    title: 'Latest full quarter vs 2022 Q2',
+    description: 'Per-day loss rates and the drone-to-armor ratio for the latest quarter with at least 85 days of data, beside 2022 Q2.',
+    inputs: ['tactic_shift'],
+    fn: (tactic_shift) => {
+      const full = tactic_shift.filter((r) => Number(r.days) >= 85);
+      const last = full[full.length - 1];
+      const base = tactic_shift.find((r) => r.quarter === '2022Q2');
+      if (!last || !base) return [];
+      return [{
+        quarter: last.quarter,
+        drones_per_armored_vehicle: Number(last.drones_per_armored_vehicle),
+        drones_per_armored_vehicle_2022q2: Number(base.drones_per_armored_vehicle),
+        uav_per_day: Number(last.uav_per_day),
+        uav_per_day_2022q2: Number(base.uav_per_day),
+        tanks_per_day: Number(last.tanks_per_day),
+        tanks_per_day_2022q2: Number(base.tanks_per_day),
+      }];
+    },
+  });
+
+  dash.calc('obs_summary', {
+    title: 'Observation counts',
+    description: 'Number of logged observations and distinct tactics.',
+    inputs: ['observations'],
+    fn: (observations) => [{
+      observations: observations.length,
+      subtypes: new Set(observations.map((r) => r.tactic_subtype)).size,
+    }],
+  });
+
+  const headline = () => { const h = dash.data('headline'); return h.status === 'ok' && h.data.length ? h.data[0] : null; };
+  const word = (name, pick) => dash.draw(name, (el) => { const h = headline(); el.textContent = h ? pick(h) : '—'; });
+  word('h-q', (h) => qLabel(h.quarter));
+  word('t-q1', (h) => qLabel(h.quarter));
+  word('h-ratio', (h) => fmt1(h.drones_per_armored_vehicle));
+  word('h-ratio0', (h) => fmt1(h.drones_per_armored_vehicle_2022q2));
+  word('t-ratio', (h) => fmt1(h.drones_per_armored_vehicle));
+  word('t-uav', (h) => fmt0(h.uav_per_day));
+  word('t-uav0', (h) => fmt1(h.uav_per_day_2022q2));
+  word('t-tank', (h) => fmt1(h.tanks_per_day));
+  word('t-tank0', (h) => fmt1(h.tanks_per_day_2022q2));
+  const summary = (name, field) => dash.draw(name, (el) => {
+    const s = dash.data('obs_summary');
+    el.textContent = s.status === 'ok' && s.data.length ? fmt0(s.data[0][field]) : '—';
+  });
+  summary('t-obs', 'observations');
+  summary('t-subtypes', 'subtypes');
+
+  for (const sw of document.querySelectorAll('[data-phase-swatch]')) {
+    sw.style.background = dash.colors[Number(sw.dataset.phaseSwatch)];
+  }
+  for (const sw of document.querySelectorAll('[data-claims-swatch]')) {
+    sw.style.background = sw.dataset.claimsSwatch === 'accent' ? dash.colors[0] : 'var(--cds-chart-muted)';
+  }
+</script>
+
+<script>
+  const { num, fmt1, qLabel, qDate } = window.utFmt;
+
+  function tip(el) {
+    let t = el.querySelector('.ut-tip');
+    if (!t) { t = document.createElement('div'); t.className = 'ut-tip'; t.hidden = true; el.appendChild(t); }
+    return t;
+  }
+  function placeTip(t, el, x, y) {
+    const w = t.offsetWidth, W = el.clientWidth;
+    t.style.left = `${Math.max(0, Math.min(W - w, x + 12))}px`;
+    t.style.top = `${Math.max(0, y - 10)}px`;
+  }
+  window.utTip = { tip, placeTip };
+
+  dash.draw('ratio', (el) => {
+    el.replaceChildren();
+    const d = dash.data('tactic_shift');
+    if (d.status !== 'ok') { el.textContent = '—'; return; }
+    const rows = d.data.map((r) => ({ q: r.quarter, days: num(r.days), v: num(r.drones_per_armored_vehicle) })).filter((r) => r.v != null);
+    const W = el.clientWidth || 600, H = 240, m = { t: 16, r: 56, b: 28, l: 40 };
+    const x = d3.scalePoint(rows.map((r) => r.q), [m.l, W - m.r]);
+    const y = d3.scaleLinear([0, d3.max(rows, (r) => r.v) * 1.08], [H - m.b, m.t]).nice();
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    svg.append('g').selectAll('line').data(y.ticks(4)).join('line')
+      .attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('text').data(y.ticks(4)).join('text')
+      .attr('x', m.l - 6).attr('y', (v) => y(v) + 4).attr('text-anchor', 'end').text(d3.format(','));
+    const years = rows.filter((r) => r.q.endsWith('Q1') || r === rows[0]);
+    svg.append('g').selectAll('text').data(years).join('text')
+      .attr('x', (r) => x(r.q)).attr('y', H - 8).attr('text-anchor', 'middle').text((r) => r.q.slice(0, 4));
+    const full = rows.filter((r) => r.days >= 85);
+    svg.append('path').datum(full).attr('fill', 'none').attr('stroke', dash.colors[0]).attr('stroke-width', 2)
+      .attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round')
+      .attr('d', d3.line((r) => x(r.q), (r) => y(r.v)));
+    const partial = rows.filter((r) => r.days < 85 && r !== rows[0]);
+    if (partial.length && full.length) {
+      svg.append('line').attr('x1', x(full.at(-1).q)).attr('y1', y(full.at(-1).v))
+        .attr('x2', x(partial.at(-1).q)).attr('y2', y(partial.at(-1).v))
+        .attr('stroke', dash.colors[0]).attr('stroke-width', 2).attr('stroke-dasharray', '3 3');
+    }
+    svg.append('g').selectAll('circle').data(rows).join('circle')
+      .attr('cx', (r) => x(r.q)).attr('cy', (r) => y(r.v)).attr('r', 3)
+      .attr('fill', (r) => (r.days >= 85 ? dash.colors[0] : 'var(--color-panel)'))
+      .attr('stroke', dash.colors[0]).attr('stroke-width', 1.5);
+    const end = full.at(-1);
+    if (end) svg.append('text').attr('class', 'ut-strong').attr('x', x(end.q) + 8).attr('y', y(end.v) + 4).text(fmt1(end.v));
+    const t = tip(el);
+    svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.l - m.r).attr('height', H - m.t - m.b).attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        const [px] = d3.pointer(ev);
+        const r = rows.reduce((a, b) => (Math.abs(x(b.q) - px) < Math.abs(x(a.q) - px) ? b : a));
+        t.hidden = false;
+        t.innerHTML = '';
+        const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = qLabel(r.q) + (r.days < 85 ? ` (${r.days} days)` : '');
+        const v = document.createElement('div'); v.textContent = `${fmt1(r.v)} drones per armored vehicle`;
+        t.append(k, v);
+        const sx = el.clientWidth / W;
+        placeTip(t, el, x(r.q) * sx, y(r.v) * sx);
+      })
+      .on('pointerleave', () => { t.hidden = true; });
+  });
+
+  dash.draw('perday', (el) => {
+    el.replaceChildren();
+    const d = dash.data('tactic_shift');
+    if (d.status !== 'ok') { el.textContent = '—'; return; }
+    const key = el.dataset.metric;
+    const rows = d.data.map((r) => ({ q: r.quarter, days: num(r.days), v: num(r[key]) }));
+    const W = el.clientWidth || 260, H = 128, m = { t: 18, r: 4, b: 18, l: 4 };
+    const x = d3.scaleBand(rows.map((r) => r.q), [m.l, W - m.r]).padding(0.25);
+    const y = d3.scaleLinear([0, d3.max(rows, (r) => r.v) || 1], [H - m.b, m.t]);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', H - m.b).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-axis)');
+    const peak = rows.reduce((a, b) => (b.v > a.v ? b : a));
+    const last = rows.filter((r) => r.days >= 85).at(-1);
+    svg.append('g').selectAll('rect').data(rows).join('rect')
+      .attr('x', (r) => x(r.q)).attr('width', x.bandwidth()).attr('y', (r) => y(r.v)).attr('height', (r) => H - m.b - y(r.v))
+      .attr('rx', Math.min(2, x.bandwidth() / 2))
+      .attr('fill', (r) => (r === last || r === peak ? dash.colors[0] : 'var(--cds-chart-muted)'))
+      .attr('opacity', (r) => (r.days < 85 ? 0.45 : 1));
+    const lab = (r, anchor) => svg.append('text').attr('class', 'ut-strong').attr('text-anchor', anchor)
+      .attr('x', anchor === 'end' ? Math.min(W - m.r, x(r.q) + x.bandwidth()) : x(r.q)).attr('y', y(r.v) - 4).text(fmt1(r.v));
+    if (last) lab(last, 'end');
+    if (peak && peak !== last && Math.abs(x(peak.q) - x(last.q)) > 60) lab(peak, x(peak.q) < W / 2 ? 'start' : 'end');
+    svg.append('text').attr('x', m.l).attr('y', H - 4).text(rows[0].q.slice(0, 4));
+    svg.append('text').attr('x', W - m.r).attr('y', H - 4).attr('text-anchor', 'end').text(rows.at(-1).q.slice(0, 4));
+    const t = tip(el);
+    svg.selectAll('rect').on('pointerenter', (ev, r) => {
+      t.hidden = false; t.innerHTML = '';
+      const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = qLabel(r.q) + (r.days < 85 ? ` (${r.days} days)` : '');
+      const v = document.createElement('div'); v.textContent = `${fmt1(r.v)} per day`;
+      t.append(k, v);
+      const sx = el.clientWidth / W;
+      placeTip(t, el, x(r.q) * sx, y(r.v) * sx);
+    }).on('pointerleave', () => { t.hidden = true; });
+  });
+</script>
+
+<script>
+  const { fmt0: f0 } = window.utFmt;
+  const { tip, placeTip } = window.utTip;
+  const PHASES = ['emerging', 'scaling', 'dominant', 'countered', 'declining'];
+  const CATEGORY_ORDER = ['uas_strike', 'uas_isr', 'ugv', 'ew_counter_uas', 'assault', 'fires', 'logistics_interdiction', 'force_structure'];
+  window.utState = window.utState || { side: 'all', selected: null, query: '' };
+
+  for (const b of document.querySelectorAll('[data-side]')) {
+    b.addEventListener('click', () => {
+      window.utState.side = b.dataset.side;
+      for (const o of document.querySelectorAll('[data-side]')) o.setAttribute('aria-pressed', String(o === b));
+      dash.draw('timeline');
+    });
+  }
+  for (const s of document.querySelectorAll('#ut-search')) {
+    s.addEventListener('input', () => { window.utState.query = s.value.trim().toLowerCase(); dash.draw('obs-table'); });
+  }
+
+  const visible = (rows) => rows.filter((r) => window.utState.side === 'all' || r.side === window.utState.side || r.side === 'both');
+
+  dash.draw('timeline', (el) => {
+    el.replaceChildren();
+    const d = dash.data('observations');
+    if (d.status !== 'ok') { el.textContent = '—'; return; }
+    const rows = visible(d.data).map((r) => ({ ...r, t: new Date(r.date) }));
+    const lanes = [...new Map(d.data
+      .slice().sort((a, b) => CATEGORY_ORDER.indexOf(a.tactic_category) - CATEGORY_ORDER.indexOf(b.tactic_category) || a.subtype_label.localeCompare(b.subtype_label))
+      .map((r) => [r.tactic_subtype, r])).values()];
+    const W = Math.max(el.clientWidth || 700, 640), lane = 22, m = { t: 22, r: 16, b: 26, l: 0 };
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${m.t + lanes.length * lane + m.b}`);
+    const labels = svg.append('g');
+    labels.selectAll('text').data(lanes).join('text').attr('x', 0).attr('y', (r, i) => m.t + i * lane + lane / 2 + 4).text((r) => r.subtype_label);
+    let lw = 0; labels.selectAll('text').each(function () { lw = Math.max(lw, this.getComputedTextLength()); });
+    m.l = Math.min(lw + 12, W * 0.45);
+    labels.selectAll('text').each(function () {
+      const full = this.textContent; let s = full;
+      while (this.getComputedTextLength() > m.l - 12 && s.length > 4) { s = s.slice(0, -2); this.textContent = s + '…'; }
+    });
+    const H = m.t + lanes.length * lane;
+    const x = d3.scaleUtc([new Date('2022-02-24'), new Date()], [m.l, W - m.r]);
+    const yi = new Map(lanes.map((r, i) => [r.tactic_subtype, i]));
+    let prevCat = null;
+    lanes.forEach((r, i) => {
+      if (r.tactic_category !== prevCat && i > 0) {
+        svg.append('line').attr('x1', 0).attr('x2', W - m.r).attr('y1', m.t + i * lane).attr('y2', m.t + i * lane).attr('stroke', 'var(--cds-chart-axis)');
+      }
+      prevCat = r.tactic_category;
+    });
+    svg.append('g').selectAll('line').data(x.ticks(d3.utcYear.every(1))).join('line')
+      .attr('x1', x).attr('x2', x).attr('y1', m.t - 6).attr('y2', H).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('text').data(x.ticks(d3.utcYear.every(1))).join('text')
+      .attr('x', x).attr('y', m.t - 10).attr('text-anchor', 'middle').text(d3.utcFormat('%Y'));
+    const color = (r) => dash.colors[Math.max(0, PHASES.indexOf(r.phase))];
+    const t = tip(el);
+    svg.append('g').selectAll('circle').data(rows).join('circle')
+      .attr('cx', (r) => x(r.t)).attr('cy', (r) => m.t + yi.get(r.tactic_subtype) * lane + lane / 2)
+      .attr('r', (r) => (r.id === window.utState.selected ? 7 : 5))
+      .attr('fill', (r) => (r.access === 'secondary' ? 'var(--color-panel)' : color(r)))
+      .attr('stroke', color).attr('stroke-width', 2).style('cursor', 'pointer')
+      .attr('tabindex', 0).attr('role', 'button').attr('aria-label', (r) => `${r.date} ${r.subtype_label}, ${r.phase}`)
+      .on('pointerenter', (ev, r) => {
+        t.hidden = false; t.innerHTML = '';
+        const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = `${r.date} · ${r.side} · ${r.phase}`;
+        const v = document.createElement('div'); v.textContent = r.summary;
+        t.append(k, v);
+        const [px, py] = d3.pointer(ev, el); placeTip(t, el, px, py);
+      })
+      .on('pointerleave', () => { t.hidden = true; })
+      .on('click keydown', (ev, r) => {
+        if (ev.type === 'keydown' && ev.key !== 'Enter' && ev.key !== ' ') return;
+        window.utState.selected = r.id; dash.draw('timeline'); dash.draw('detail');
+      });
+  });
+
+  dash.draw('detail', (el) => {
+    const d = dash.data('observations');
+    const r = d.status === 'ok' ? d.data.find((o) => o.id === window.utState.selected) : null;
+    el.replaceChildren();
+    if (!r) { el.textContent = d.status === 'ok' ? 'Select a dot to see the observation.' : '—'; return; }
+    const head = document.createElement('div'); head.className = 'ut-tip-k';
+    head.textContent = `${r.date} · ${r.side === 'both' ? 'Both sides' : r.side} · ${r.sector}${r.unit ? ' · ' + r.unit : ''} · ${r.category_label}: ${r.subtype_label} · ${r.phase} · ${r.confidence} confidence`;
+    const body = document.createElement('div'); body.textContent = r.summary;
+    const a = document.createElement('a'); a.href = r.source_url; a.target = '_blank'; a.rel = 'noopener';
+    a.textContent = `${r.source_org}: ${r.source_title}${r.access === 'secondary' ? ' (via coverage)' : ''}`;
+    el.append(head, body, a);
+  });
+
+  dash.draw('obs-table', (tb) => {
+    tb.replaceChildren();
+    const d = dash.data('observations');
+    if (d.status !== 'ok') return;
+    const q = window.utState.query;
+    const rows = d.data.slice().sort((a, b) => b.date.localeCompare(a.date))
+      .filter((r) => !q || Object.values(r).join(' ').toLowerCase().includes(q));
+    for (const r of rows) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.id;
+      for (const f of ['date', 'side', 'subtype_label', 'phase', 'summary']) {
+        const td = document.createElement('td'); td.textContent = r[f]; tr.append(td);
+      }
+      const src = document.createElement('td'); src.className = 'ut-hide-narrow';
+      const a = document.createElement('a'); a.href = r.source_url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = r.source_title;
+      src.append(a); tr.append(src);
+      const c = document.createElement('td'); c.className = 'ut-hide-narrow'; c.textContent = r.confidence; tr.append(c);
+      tb.append(tr);
+    }
+  });
+
+  const CLASS_LABELS = { tank: 'Tanks', afv: 'Armored vehicles', artillery: 'Artillery', mrl: 'Rocket launchers', air_defense: 'Air defense', aircraft: 'Aircraft', helicopter: 'Helicopters' };
+  dash.draw('claims', (el) => {
+    el.replaceChildren();
+    const d = dash.data('claimed_vs_confirmed');
+    if (d.status !== 'ok') { el.textContent = '—'; return; }
+    const rows = d.data.map((r) => ({ c: r.equipment_class, claimed: +r.ua_mod_claimed, conf: +r.oryx_confirmed, ratio: +r.claimed_to_confirmed }));
+    const W = el.clientWidth || 600, row = 34, m = { t: 8, r: 64, b: 8, l: 120 };
+    const H = m.t + rows.length * row + m.b;
+    const x = d3.scaleLinear([0, d3.max(rows, (r) => r.claimed)], [m.l, W - m.r]);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const g = svg.append('g').selectAll('g').data(rows).join('g').attr('transform', (r, i) => `translate(0,${m.t + i * row})`);
+    g.append('text').attr('x', m.l - 8).attr('y', 17).attr('text-anchor', 'end').text((r) => CLASS_LABELS[r.c] || r.c);
+    g.append('rect').attr('x', m.l).attr('y', 4).attr('height', 9).attr('rx', 2).attr('width', (r) => x(r.claimed) - m.l).attr('fill', 'var(--cds-chart-muted)');
+    g.append('rect').attr('x', m.l).attr('y', 15).attr('height', 9).attr('rx', 2).attr('width', (r) => x(r.conf) - m.l).attr('fill', dash.colors[0]);
+    g.append('text').attr('class', 'ut-strong').attr('x', (r) => x(r.claimed) + 6).attr('y', 17).text((r) => `×${r.ratio.toFixed(1)}`);
+    const t = tip(el);
+    g.on('pointerenter', (ev, r) => {
+      t.hidden = false; t.innerHTML = '';
+      const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = CLASS_LABELS[r.c] || r.c;
+      const a = document.createElement('div'); a.textContent = `Claimed ${f0(r.claimed)}`;
+      const b = document.createElement('div'); b.textContent = `Confirmed ${f0(r.conf)}`;
+      t.append(k, a, b);
+      const [px, py] = d3.pointer(ev, el); placeTip(t, el, px, py);
+    }).on('pointerleave', () => { t.hidden = true; });
+  });
+</script>

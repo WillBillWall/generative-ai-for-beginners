@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Equipment loss record",
+  "description": "A count of equipment lost by one side in one class over one period, from one source.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["period_start", "period_end", "side", "equipment_class", "model", "count", "source_org", "method", "source_url"],
+  "properties": {
+    "period_start": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+    "period_end": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+    "side": {"enum": ["RU", "UA"]},
+    "equipment_class": {"type": "string"},
+    "model": {"type": "string", "description": "Equipment model, or '*' when the source does not break it down"},
+    "count": {"type": "integer", "minimum": 0},
+    "source_org": {"enum": ["UA MoD", "Oryx", "WarSpotting"]},
+    "method": {"enum": ["claimed", "visually_confirmed"]},
+    "source_url": {"type": "string", "pattern": "^https://"}
+  }
+}

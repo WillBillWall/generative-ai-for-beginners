@@ -1,0 +1,15 @@
+equipment_class,label,count,as_of
+afv,Armored fighting vehicles (APC/IFV/AFV),3326,2023-02-05
+vehicles,"Trucks, vehicles and fuel tankers",2256,2023-02-05
+tank,Tanks,1673,2023-02-05
+artillery,Field artillery (towed + self-propelled),491,2023-02-05
+special_equipment,Engineering and special equipment,268,2023-02-05
+command_comms,Command posts and communications stations,230,2023-02-05
+uav,Drones (operational-tactical),183,2023-02-05
+mrl,Multiple rocket launchers,172,2023-02-05
+air_defense,Air defense systems,131,2023-02-05
+other,Anything else,91,2023-02-05
+helicopter,Helicopters,75,2023-02-05
+aircraft,Fixed-wing aircraft,69,2023-02-05
+ew_radar,"Radars, jammers and deception systems",45,2023-02-05
+naval,"Ships, boats and submarines",12,2023-02-05

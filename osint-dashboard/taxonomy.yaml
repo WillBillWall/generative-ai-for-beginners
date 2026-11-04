@@ -1,0 +1,79 @@
+# Controlled vocabulary shared by every source. normalize.py rejects any
+# observation whose category/subtype is not listed here.
+
+categories:
+  uas_strike:
+    label: Strike drones
+    subtypes:
+      fpv: Radio-controlled FPV kamikaze drone
+      fiber_optic_fpv: Fiber-optic-guided FPV (jam-resistant)
+      bomber_drone: Multirotor dropping munitions
+      long_range_strike: Long-range one-way attack drone (e.g. Shahed/Geran)
+      uav_complex: Integrated recon-strike drone formation
+  uas_isr:
+    label: Recon drones
+    subtypes:
+      artillery_spotting: Drone-directed artillery fire
+      persistent_isr: Persistent overwatch of the front
+  ugv:
+    label: Ground robots
+    subtypes:
+      logistics_ugv: Resupply / casualty evacuation robot
+      armed_ugv: Armed ground robot
+      robot_only_assault: Assault conducted without infantry
+  ew_counter_uas:
+    label: EW & counter-drone
+    subtypes:
+      jamming: Radio-frequency jamming of drones
+      signature_management: Thermal/visual camouflage against sensors
+      interceptor_drone: Drone used to destroy drones
+      operator_hunting: Targeting drone crews and their command posts
+  assault:
+    label: Assault tactics
+    subtypes:
+      mechanized_assault: Armored / mechanized assault
+      attritional_infantry: Stratified, attritional infantry assaults
+      small_group_infiltration: Small dismounted groups infiltrating
+      motorcycle_light_vehicle: Motorcycle / light vehicle assaults
+  fires:
+    label: Fires
+    subtypes:
+      artillery: Tube and rocket artillery
+      glide_bomb: Air-launched guided glide bombs (KAB/UMPK)
+  logistics_interdiction:
+    label: Logistics interdiction
+    subtypes:
+      kill_zone: Drone-saturated zone behind the line of contact
+      drone_ambush: Drones loitering or perched on supply routes
+      drone_c2_strike: Strikes on drone units' bases and command
+  force_structure:
+    label: Force structure
+    subtypes:
+      dedicated_drone_branch: Separate drone service or elite drone center
+
+# Lifecycle of a tactic as observed in a source at a given date.
+phases:
+  emerging: First reported or experimental use
+  scaling: Spreading across units or sectors
+  dominant: Defining feature of the fighting
+  countered: Effective counter-measures reported
+  declining: Use falling off
+
+# Equipment classes used for loss data. Every source maps onto these.
+equipment_classes:
+  tank: Tanks
+  afv: Armored fighting vehicles (APC/IFV/AFV)
+  artillery: Field artillery (towed + self-propelled)
+  mrl: Multiple rocket launchers
+  air_defense: Air defense systems
+  aircraft: Fixed-wing aircraft
+  helicopter: Helicopters
+  uav: Drones (operational-tactical)
+  ugv: Ground robotic systems
+  cruise_missile: Cruise missiles
+  naval: Ships, boats and submarines
+  vehicles: Trucks, vehicles and fuel tankers
+  special_equipment: Engineering and special equipment
+  ew_radar: Radars, jammers and deception systems
+  command_comms: Command posts and communications stations
+  other: Anything else

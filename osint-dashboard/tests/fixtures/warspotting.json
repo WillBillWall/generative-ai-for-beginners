@@ -1,0 +1,5 @@
+{"losses": [
+  {"id": 1, "date": "2025-03-01", "type": "Tanks", "model": "T-80BVM"},
+  {"id": 2, "date": "2025-03-01", "type": "Tanks", "model": "T-80BVM"},
+  {"id": 3, "date": "2025-03-01", "type": "Infantry Fighting Vehicles", "model": "BMP-2"}
+]}
