@@ -432,7 +432,17 @@
     t.style.left = `${Math.max(0, Math.min(W - w, x + 12))}px`;
     t.style.top = `${Math.max(0, y - 10)}px`;
   }
-  window.utTip = { tip, placeTip };
+  // Shorten each label's first tspan (the name) until the whole label fits in maxW.
+  function fitLabels(sel, maxW) {
+    sel.each(function () {
+      const name = this.querySelector('tspan') || this;
+      const full = name.textContent;
+      let n = full.length;
+      while (this.getComputedTextLength() > maxW && n > 6) { n -= 1; name.textContent = full.slice(0, n).trimEnd() + '…'; }
+      if (n < full.length) { const t = document.createElementNS('http://www.w3.org/2000/svg', 'title'); t.textContent = full; this.appendChild(t); }
+    });
+  }
+  window.utTip = { tip, placeTip, fitLabels };
 
   dash.draw('index', (el) => {
     el.replaceChildren();
@@ -531,7 +541,7 @@
 
 <script>
   const { fmt0: f0 } = window.utFmt;
-  const { tip, placeTip } = window.utTip;
+  const { tip, placeTip, fitLabels } = window.utTip;
   const STAGES = ['emerging', 'spreading', 'widespread', 'fading', 'resurgent'];
   const STAGE_COLOR = [0, 1, 2, 4, 5];
   const stageColor = (st) => dash.colors[STAGE_COLOR[Math.max(0, STAGES.indexOf(st))]];
@@ -581,7 +591,7 @@
     let cat = null;
     for (const obs of lanes) {
       if (obs[0].tactic_category !== cat) { cat = obs[0].tactic_category; items.push({ header: obs[0].category_label }); }
-      items.push({ obs, label: obs[0].subtype_label, sides: obs[0].lane === 'RU' ? 'Russia' : 'Ukraine' });
+      items.push({ obs, label: obs[0].subtype_label, sides: obs[0].lane });
     }
     const W = Math.max(el.clientWidth || 700, 640), lane = 24, m = { t: 22, r: 16, b: 8 };
     const H = m.t + items.length * lane + m.b;
@@ -596,6 +606,8 @@
     });
     let lw = 0; lab.selectAll('text').each(function () { lw = Math.max(lw, this.getComputedTextLength() + 10); });
     const left = Math.min(lw + 14, W * 0.45);
+    fitLabels(lab.selectAll('text:not(.ut-cat)'), left - 24);
+    fitLabels(lab.selectAll('text.ut-cat'), left - 14);
     const x = d3.scaleUtc([new Date('2022-02-24'), now], [left, W - m.r]);
     svg.append('g').selectAll('line').data(x.ticks(d3.utcYear.every(1))).join('line')
       .attr('x1', x).attr('x2', x).attr('y1', m.t - 6).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-grid)');
@@ -698,7 +710,7 @@
 
 <script>
   const { num: n_, fmt1: f1_, fmt0: f0_ } = window.utFmt;
-  const { tip: tip_, placeTip: place_ } = window.utTip;
+  const { tip: tip_, placeTip: place_, fitLabels: fit_ } = window.utTip;
   const LABEL = { tank: 'Tanks', afv: 'Armored vehicles', artillery: 'Artillery', mrl: 'Rocket launchers', air_defense: 'Air defense', uav: 'Drones', vehicles: 'Logistics vehicles' };
   const pct = (v) => (v == null || v === '' ? '—' : `${Number(v) > 0 ? '+' : ''}${f1_(Number(v))}%`);
   const one = (id, where) => { const d = dash.data(id); return d.status === 'ok' ? d.data.find(where) : null; };
@@ -858,17 +870,18 @@
     const rows = d.data.filter((r) => has(r.months_to_spread) || has(r.months_to_counter))
       .map((r) => ({ ...r, t0: new Date(r.first_seen), ts: has(r.spread_date) ? new Date(r.spread_date) : null, tc: has(r.counter_date) ? new Date(r.counter_date) : null }))
       .sort((a, b) => a.t0 - b.t0);
-    const W = el.clientWidth || 700, lane = 30, m = { t: 20, r: 70, b: 8 };
+    const W = el.clientWidth || 700, lane = 30, m = { t: 20, r: 190, b: 8 };
     const H = m.t + rows.length * lane + m.b;
     const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
     const lab = svg.append('g');
     rows.forEach((r, i) => {
       const tx = lab.append('text').attr('x', 0).attr('y', m.t + i * lane + lane / 2 + 4);
       tx.append('tspan').text(r.subtype_label);
-      tx.append('tspan').attr('dx', 6).text(r.side === 'RU' ? 'Russia' : 'Ukraine');
+      tx.append('tspan').attr('dx', 6).text(r.side);
     });
     let lw = 0; lab.selectAll('text').each(function () { lw = Math.max(lw, this.getComputedTextLength()); });
     const left = Math.min(lw + 14, W * 0.45);
+    fit_(lab.selectAll('text'), left - 14);
     const x = d3.scaleUtc([new Date('2022-09-01'), new Date()], [left, W - m.r]);
     svg.append('g').selectAll('line').data(x.ticks(d3.utcYear.every(1))).join('line').attr('x1', x).attr('x2', x).attr('y1', m.t - 6).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-grid)');
     svg.append('g').selectAll('text').data(x.ticks(d3.utcYear.every(1))).join('text').attr('x', x).attr('y', m.t - 8).attr('text-anchor', 'middle').text(d3.utcFormat('%Y'));
@@ -891,7 +904,14 @@
       for (const b of bars) {
         g.append('rect').attr('x', x(r.t0)).attr('y', yc + b.dy - 3).attr('width', Math.max(2, x(b.to) - x(r.t0))).attr('height', 6).attr('rx', 2).attr('fill', b.c)
           .on('pointerenter', (ev) => tipFor(ev, `${r.subtype_label}: ${b.what} after ${f1_(Number(b.months))} months`, b.body)).on('pointerleave', () => { t.hidden = true; });
-        g.append('text').attr('class', 'ut-strong').attr('x', x(b.to) + 6).attr('y', yc + b.dy + 4).style('fill', b.c).text(`${f1_(Number(b.months))} mo`);
+        if (bars.length === 1) g.append('text').attr('class', 'ut-strong').attr('x', x(b.to) + 6).attr('y', yc + 4).style('fill', b.c).text(`${f1_(Number(b.months))} mo`);
+      }
+      if (bars.length === 2) {
+        // two bars share a row: one label after the longer bar, so the labels cannot collide
+        const far = bars[0].to > bars[1].to ? bars[0] : bars[1];
+        const lbl = g.append('text').attr('class', 'ut-strong').attr('x', x(far.to) + 6).attr('y', yc + 4);
+        lbl.append('tspan').style('fill', bars[0].c).text(`spread ${f1_(Number(bars[0].months))} mo`);
+        lbl.append('tspan').attr('dx', 6).style('fill', bars[1].c).text(`countered ${f1_(Number(bars[1].months))} mo`);
       }
     });
   });
