@@ -27,6 +27,8 @@
   .ut-mini-tall { min-height: 9rem; }
   .ut-chart-tall { min-height: 18rem; }
   .ut-legend-left { margin-left: 0; }
+  .ut-sw-peak { background: var(--cds-chart-muted); outline: 1.5px solid var(--color-fg); outline-offset: -1.5px; }
+  .ut-sw-partial { background: var(--cds-chart-muted); opacity: 0.45; }
   .ut-sw-counter { background: transparent; border: 3px solid var(--color-bad); width: 0.75rem; height: 0.75rem; }
   .ut-sw-bar { width: 1.1rem; height: 0.5rem; border-radius: 2px; }
   .ut svg .ut-cat { fill: var(--color-fg); font-weight: 600; }
@@ -105,7 +107,12 @@
       <div class="ut-card"><h3>Artillery per day</h3><div class="ut-mini" data-draw="perday" data-metric="artillery_per_day" data-source="tactic_shift"></div></div>
       <div class="ut-card"><h3>Drones per day</h3><div class="ut-mini" data-draw="perday" data-metric="uav_per_day" data-source="tactic_shift"></div></div>
     </div>
-    <p class="ut-note">Each small chart has its own scale. Ground-robot losses have been reported only since 3 May 2026, so they are not charted yet.</p>
+    <div class="ut-legend ut-legend-left">
+      <span><i class="ut-sw ut-sw-bar" data-perday-swatch="latest"></i>Latest full quarter</span>
+      <span><i class="ut-sw ut-sw-bar ut-sw-peak"></i>Highest quarter</span>
+      <span><i class="ut-sw ut-sw-bar ut-sw-partial"></i>Partial quarter: the war began on 24 Feb 2022, and the current quarter is still running</span>
+    </div>
+    <p class="ut-note">Bars are average claimed Russian losses per day in each quarter. Each small chart has its own scale. Ground-robot losses have been reported only since 3 May 2026, so they are not charted yet.</p>
   </section>
 
   <section class="ut-section" id="front-line">
@@ -414,6 +421,7 @@
   for (const sw of document.querySelectorAll('[data-adapt-swatch]')) {
     sw.style.background = sw.dataset.adaptSwatch === 'spread' ? dash.colors[0] : dash.colors[3];
   }
+  for (const sw of document.querySelectorAll('[data-perday-swatch]')) sw.style.background = dash.colors[0];
   for (const sw of document.querySelectorAll('[data-claims-swatch]')) {
     sw.style.background = sw.dataset.claimsSwatch === 'accent' ? dash.colors[0] : 'var(--cds-chart-muted)';
   }
@@ -509,7 +517,7 @@
     if (d.status !== 'ok') { el.textContent = '—'; return; }
     const key = el.dataset.metric;
     const rows = d.data.map((r) => ({ q: r.quarter, days: num(r.days), v: num(r[key]) }));
-    const W = el.clientWidth || 260, H = 128, m = { t: 18, r: 4, b: 18, l: 4 };
+    const W = el.clientWidth || 260, H = 136, m = { t: 24, r: 4, b: 18, l: 4 };
     const x = d3.scaleBand(rows.map((r) => r.q), [m.l, W - m.r]).padding(0.25);
     const y = d3.scaleLinear([0, d3.max(rows, (r) => r.v) || 1], [H - m.b, m.t]);
     const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
@@ -519,12 +527,17 @@
     svg.append('g').selectAll('rect').data(rows).join('rect')
       .attr('x', (r) => x(r.q)).attr('width', x.bandwidth()).attr('y', (r) => y(r.v)).attr('height', (r) => H - m.b - y(r.v))
       .attr('rx', Math.min(2, x.bandwidth() / 2))
-      .attr('fill', (r) => (r === last || r === peak ? dash.colors[0] : 'var(--cds-chart-muted)'))
+      .attr('fill', (r) => (r === last ? dash.colors[0] : 'var(--cds-chart-muted)'))
+      .attr('stroke', (r) => (r === peak && r !== last ? 'var(--color-fg)' : 'none')).attr('stroke-width', 1.5)
       .attr('opacity', (r) => (r.days < 85 ? 0.45 : 1));
-    const lab = (r, anchor) => svg.append('text').attr('class', 'ut-strong').attr('text-anchor', anchor)
-      .attr('x', anchor === 'end' ? Math.min(W - m.r, x(r.q) + x.bandwidth()) : x(r.q)).attr('y', y(r.v) - 4).text(fmt1(r.v));
-    if (last) lab(last, 'end');
-    if (peak && peak !== last && Math.abs(x(peak.q) - x(last.q)) > 60) lab(peak, x(peak.q) < W / 2 ? 'start' : 'end');
+    // Labels say what they are. If the peak and the latest bar are close, one combined label.
+    const lab = (r, anchor, text, yy) => svg.append('text').attr('class', 'ut-strong').attr('text-anchor', anchor)
+      .attr('x', anchor === 'end' ? Math.min(W - m.r, x(r.q) + x.bandwidth()) : x(r.q)).attr('y', yy ?? y(r.v) - 4).text(text);
+    if (last && peak === last) lab(last, 'end', `Latest ${fmt1(last.v)}, the highest yet`);
+    else if (last && Math.abs(x(peak.q) - x(last.q)) > 90) {
+      lab(last, 'end', `Latest ${fmt1(last.v)}`);
+      lab(peak, x(peak.q) < W / 2 ? 'start' : 'end', `Peak ${fmt1(peak.v)}`);
+    } else if (last) lab(last, 'end', `Latest ${fmt1(last.v)} · peak ${fmt1(peak.v)}`, m.t - 6);
     svg.append('text').attr('x', m.l).attr('y', H - 4).text(rows[0].q.slice(0, 4));
     svg.append('text').attr('x', W - m.r).attr('y', H - 4).attr('text-anchor', 'end').text(rows.at(-1).q.slice(0, 4));
     const t = tip(el);
