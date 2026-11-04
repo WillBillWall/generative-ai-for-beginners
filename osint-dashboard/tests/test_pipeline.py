@@ -282,3 +282,11 @@ def test_metrics_seed_valid():
     rows = normalize.load_metrics()
     assert rows and all(r["source_url"].startswith("https://") for r in rows)
     assert {r["metric"] for r in rows} <= set(normalize.taxonomy()["metrics"])
+
+
+def test_svg_path_in_km():
+    from ingest import frontmap
+    d = frontmap.svg_path(box(0, 0, 2000, 1000))
+    assert d.startswith("M") and d.endswith("Z")
+    coords = {tuple(map(float, p.split(","))) for p in d[1:-1].split("L")}
+    assert coords == {(0.0, 0.0), (2.0, 0.0), (2.0, 1.0), (0.0, 1.0)}

@@ -90,9 +90,14 @@ def pieces(geom) -> list:
     return [p for p in parts if p.area / 1e6 >= MIN_PIECE_KM2]
 
 
+def compare_pieces(prev, cur) -> tuple[list, list]:
+    """Pieces Russia gained and lost between two maps (slivers dropped)."""
+    return pieces(cur.difference(prev)), pieces(prev.difference(cur))
+
+
 def compare(prev, cur) -> dict:
     """Gains and losses between two maps, by direction, with shape metrics."""
-    gained, lost = pieces(cur.difference(prev)), pieces(prev.difference(cur))
+    gained, lost = compare_pieces(prev, cur)
     by_dir: dict[str, dict] = defaultdict(lambda: {"gained_km2": 0.0, "lost_km2": 0.0, "pieces": 0})
     depths = []
     for g in gained:

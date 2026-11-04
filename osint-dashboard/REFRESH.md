@@ -31,6 +31,7 @@ artifact whose datasets are attached CSV files. To refresh it:
 | `territory_by_direction` | `territory_by_direction.csv` | DeepStateMap (month-start maps) |
 | `front_shape` | `front_shape.csv` | DeepStateMap (month-start maps) |
 | `equipment_monthly` | `equipment_monthly.csv` | UA MoD daily |
+| `front_map` | `front_map.json` | DeepStateMap + Natural Earth borders (upload as JSON) |
 
 Sources that need network access first (not yet in the refresh): ISW
 (understandingwar.org / criticalthreats.org), WarSpotting (ukr.warspotting.net),

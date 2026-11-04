@@ -157,3 +157,8 @@ Question: which tactics went with territory changing hands, and who held the adv
 - **Shape:** since mid-2026, about 18-23 separate small pieces a month, deepest push 4-8 km, the busiest direction only 23-34% of gains. That is broad, shallow pressure, not breakthroughs.
 - **Oryx 2023:** 47% of confirmed tank losses were models designed or last modernised in the 1980s or earlier.
 - 25 tests pass, including a geometry test with a known 3 km / 12 km² push.
+
+# Front map (requested 2026-11-04)
+- [x] `ingest/frontmap.py`: Ukraine border (Natural Earth 1:50m), latest Russian-held area, 12 months of gained/lost pieces, direction anchors and cities, as SVG paths in km (UTM 37N), 176 KB
+- [x] Rendered the layers in a standalone SVG to check placement (gains along Siversk-Kostiantynivka, Pokrovsk-Dobropillya, Huliaipole; Ukrainian gains near Lyman, Kupiansk, Novopavlivka); fixed the Crimea crop and the duplicate Kherson label
+- [x] Dashboard map card: 1/3/12-month window, bubbles sized by net change, collision-nudged labels, caption with totals; heat table retitled as the month-by-month detail

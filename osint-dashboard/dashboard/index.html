@@ -27,6 +27,8 @@
   .ut-mini-tall { min-height: 9rem; }
   .ut-chart-tall { min-height: 18rem; }
   .ut-chart-adv { min-height: 20rem; }
+  .ut-map { position: relative; min-height: 24rem; }
+  .ut-map svg { display: block; }
   .ut-legend-left { margin-left: 0; }
   .ut-sw-peak { background: var(--cds-chart-muted); outline: 1.5px solid var(--color-fg); outline-offset: -1.5px; }
   .ut-sw-partial { background: var(--cds-chart-muted); opacity: 0.45; }
@@ -190,6 +192,23 @@
   <section class="ut-section" id="granular">
     <h2 class="ut-h2">Granular view</h2>
 
+    <div class="ut-card" id="front-map">
+      <h3>Map: where ground changed hands</h3>
+      <p class="ut-note">The shaded area is what DeepStateMap shows under Russian control now. Orange patches are ground Russia took in the chosen period and blue patches are ground Ukraine took back, from comparing the maps at the start of each month. Circles sit on the towns the front directions are named after: their size is that direction's net change, orange for a Russian gain and blue for a Ukrainian one. Small patches are hard to see at this scale, so the circles carry the totals; hover a circle or a patch for numbers. Some changes are DeepState redrawing its map.</p>
+      <div class="ut-controls">
+        <button type="button" class="ut-chip" data-mapwin="1" aria-pressed="false">Last month</button>
+        <button type="button" class="ut-chip" data-mapwin="3" aria-pressed="true">Last 3 months</button>
+        <button type="button" class="ut-chip" data-mapwin="12" aria-pressed="false">Last 12 months</button>
+        <div class="ut-legend">
+          <span><i class="ut-sw" data-map-swatch="occupied"></i>Russian-held now</span>
+          <span><i class="ut-sw" data-map-swatch="gain"></i>Taken by Russia</span>
+          <span><i class="ut-sw" data-map-swatch="loss"></i>Taken back by Ukraine</span>
+        </div>
+      </div>
+      <div class="ut-map" data-draw="front-map" data-source="front_map"></div>
+      <p class="ut-note" data-draw="map-caption" data-source="front_map">—</p>
+    </div>
+
     <div class="ut-card">
       <h3>Tactical metrics over time</h3>
       <p class="ut-note">Numbers reported in sources, one dot per report, with the range the source gave as a whisker. Blue dots describe Ukrainian capability, orange Russian, green both sides. Faded dots are low-confidence figures. These are officials' and analysts' figures, rarely measured independently, and sources define them differently: read each chart as a direction of travel, not a precise series. Hover a dot for its source, scope and caveats; the full list with links is below.</p>
@@ -220,8 +239,8 @@
     </div>
 
     <div class="ut-card">
-      <h3>Where the front moved: net change by direction, last 12 months</h3>
-      <p class="ut-note">km² gained by Russia (orange) or by Ukraine (blue) each month, by front direction. Each piece of ground that changed hands is assigned to the nearest named direction; pieces more than 60 km from all of them count as "Other". Monthly maps are compared on the first day of each month, so totals differ slightly from the monthly chart above. Some changes are DeepState redrawing its map.</p>
+      <h3>Month by month, by direction</h3>
+      <p class="ut-note">The same changes as the map, month by month: each cell is a direction's net change in km², orange where Russia gained and blue where Ukraine did. Each piece of ground that changed hands is assigned to the nearest named direction; pieces more than 60 km from all of them count as "Other". Monthly maps are compared on the first day of each month, so totals differ slightly from the monthly chart above. Some changes are DeepState redrawing its map.</p>
       <div class="ut-chart" data-draw="direction-heat" data-source="territory_by_direction"></div>
     </div>
 
@@ -549,6 +568,10 @@
   for (const sw of document.querySelectorAll('[data-perday-swatch]')) sw.style.background = dash.colors[0];
   window.utBand = { 'Russia advancing fast': 3, 'Russia advancing slowly': 1, 'Front stalled': 0, 'Ukraine gaining': 2 };
   for (const sw of document.querySelectorAll('[data-band-swatch]')) sw.style.background = dash.colors[window.utBand[sw.dataset.bandSwatch]];
+  for (const sw of document.querySelectorAll('[data-map-swatch]')) {
+    const k = sw.dataset.mapSwatch;
+    sw.style.background = k === 'gain' ? dash.colors[3] : k === 'loss' ? dash.colors[0] : 'var(--cds-chart-muted)';
+  }
   for (const sw of document.querySelectorAll('[data-ba-swatch]')) sw.style.background = sw.dataset.baSwatch === 'up' ? dash.colors[3] : dash.colors[0];
   for (const sw of document.querySelectorAll('[data-claims-swatch]')) {
     sw.style.background = sw.dataset.claimsSwatch === 'accent' ? dash.colors[0] : 'var(--cds-chart-muted)';
@@ -1176,6 +1199,105 @@
     const rows = d.data.map((r) => ({ k: r.design_decade, v: Number(r.tanks_lost), s: Number(r.share) }));
     miniBars(el, rows, { fmt: f0_, firstLabel: (r) => r.k.replace('Unknown model', 'Unknown'), partialLast: false,
       tipKey: (r) => r.k, tipVal: (r) => `${f0_(r.v)} confirmed losses (${f0_(r.s * 100)}%)` });
+  });
+
+  window.utMapWin = window.utMapWin || 3;
+  for (const b of document.querySelectorAll('[data-mapwin]')) {
+    b.addEventListener('click', () => {
+      window.utMapWin = Number(b.dataset.mapwin);
+      for (const o of document.querySelectorAll('[data-mapwin]')) o.setAttribute('aria-pressed', String(o === b));
+      dash.draw('front-map'); dash.draw('map-caption');
+    });
+  }
+  const mapWindow = (rows) => {
+    const months = [...new Set(rows.filter((r) => r.layer === 'gain' || r.layer === 'loss').map((r) => r.month))].sort();
+    return months.slice(-window.utMapWin);
+  };
+  const mapTotals = (rows, months) => {
+    const tot = new Map();
+    for (const r of rows) {
+      if ((r.layer !== 'gain' && r.layer !== 'loss') || !months.includes(r.month)) continue;
+      const t = tot.get(r.direction) || { gain: 0, loss: 0 };
+      t[r.layer] += Number(r.km2) || 0;
+      tot.set(r.direction, t);
+    }
+    return tot;
+  };
+
+  dash.draw('front-map', (el) => {
+    el.replaceChildren();
+    const d = dash.data('front_map');
+    if (d.status !== 'ok') { el.textContent = '—'; return; }
+    const rows = d.data, frame = rows.find((r) => r.layer === 'frame');
+    const X = Number(frame.x), Y = Number(frame.y), FW = Number(frame.w), FH = Number(frame.h);
+    const Wpx = el.clientWidth || 700, k = FW / Wpx;          // km per pixel
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `${X} ${-(Y + FH)} ${FW} ${FH}`);
+    const flip = svg.append('g').attr('transform', 'scale(1,-1)');
+    const layer = (name) => rows.filter((r) => r.layer === name);
+    flip.selectAll('path.ukr').data(layer('ukraine')).join('path').attr('d', (r) => r.d)
+      .attr('fill', 'var(--color-bg)').attr('stroke', 'var(--cds-chart-axis)').attr('vector-effect', 'non-scaling-stroke').attr('stroke-width', 1);
+    flip.selectAll('path.occ').data(layer('occupied')).join('path').attr('d', (r) => r.d)
+      .attr('fill', 'var(--cds-chart-muted)').attr('fill-opacity', 0.55).attr('stroke', 'none');
+    const months = mapWindow(rows);
+    const pcs = rows.filter((r) => (r.layer === 'gain' || r.layer === 'loss') && months.includes(r.month));
+    const t = tip_(el);
+    flip.selectAll('path.pc').data(pcs).join('path').attr('d', (r) => r.d)
+      .attr('fill', (r) => (r.layer === 'gain' ? dash.colors[3] : dash.colors[0]))
+      .attr('stroke', (r) => (r.layer === 'gain' ? dash.colors[3] : dash.colors[0])).attr('stroke-width', 1.5).attr('vector-effect', 'non-scaling-stroke')
+      .on('pointerenter', (ev, r) => {
+        t.hidden = false; t.innerHTML = '';
+        const a = document.createElement('div'); a.className = 'ut-tip-k'; a.textContent = `${r.direction} · ${mon(r.month)}`;
+        const b = document.createElement('div'); b.textContent = `${f1_(Number(r.km2))} km² taken by ${r.layer === 'gain' ? 'Russia' : 'Ukraine'}`;
+        t.append(a, b);
+        const [px, py] = d3.pointer(ev, el); place_(t, el, px, py);
+      }).on('pointerleave', () => { t.hidden = true; });
+    // reference cities
+    const fs = 11 * k;
+    for (const c of layer('city')) {
+      svg.append('circle').attr('cx', c.x).attr('cy', -c.y).attr('r', 2 * k).attr('fill', 'var(--color-fg-muted)');
+      svg.append('text').attr('x', Number(c.x) + 4 * k).attr('y', -Number(c.y) + 4 * k).style('font-size', `${fs}px`).text(c.name);
+    }
+    // direction bubbles, area proportional to net change
+    const tot = mapTotals(rows, months);
+    const anchors = layer('anchor').map((a) => ({ ...a, t: tot.get(a.name) || { gain: 0, loss: 0 } }))
+      .map((a) => ({ ...a, net: a.t.gain - a.t.loss }));
+    const maxNet = d3.max(anchors, (a) => Math.abs(a.net)) || 1;
+    const rad = (v) => Math.sqrt(Math.abs(v) / maxNet) * 26 * k + 2 * k;
+    const bub = svg.append('g').selectAll('g').data(anchors.sort((a, b) => Math.abs(b.net) - Math.abs(a.net))).join('g');
+    bub.append('circle').attr('cx', (a) => a.x).attr('cy', (a) => -a.y).attr('r', (a) => rad(a.net))
+      .attr('fill', (a) => (a.net >= 0 ? dash.colors[3] : dash.colors[0])).attr('fill-opacity', 0.22)
+      .attr('stroke', (a) => (a.net >= 0 ? dash.colors[3] : dash.colors[0])).attr('stroke-width', 1.5).attr('vector-effect', 'non-scaling-stroke');
+    bub.on('pointerenter', (ev, a) => {
+      t.hidden = false; t.innerHTML = '';
+      const h = document.createElement('div'); h.className = 'ut-tip-k'; h.textContent = `${a.name} direction · ${months.length === 1 ? mon(months[0]) : `${mon(months[0])}–${mon(months.at(-1))}`}`;
+      const g1 = document.createElement('div'); g1.textContent = `Russia took ${f1_(a.t.gain)} km², Ukraine took back ${f1_(a.t.loss)} km²`;
+      const n1 = document.createElement('div'); n1.textContent = `Net: ${a.net >= 0 ? 'Russia' : 'Ukraine'} +${f1_(Math.abs(a.net))} km²`;
+      t.append(h, g1, n1);
+      const [px, py] = d3.pointer(ev, el); place_(t, el, px, py);
+    }).on('pointerleave', () => { t.hidden = true; });
+    // labels for the biggest movers, nudged down until they do not overlap
+    const placed = [];
+    const overlaps = (b) => placed.some((q) => b.x < q.x + q.w && b.x + b.w > q.x && b.y < q.y + q.h && b.y + b.h > q.y);
+    for (const a of anchors.filter((a) => Math.abs(a.net) >= 1).slice(0, 8)) {
+      const txt = `${a.name} ${a.net >= 0 ? '+' : '−'}${f0_(Math.abs(a.net))} km²`;
+      const node = svg.append('text').attr('class', 'ut-strong').style('font-size', `${fs * 1.05}px`).text(txt);
+      const w = node.node().getComputedTextLength(), h = fs * 1.3;
+      let bx = Number(a.x) + rad(a.net) + 3 * k, by = -Number(a.y) - h / 2, tries = 0;
+      while (overlaps({ x: bx, y: by, w, h }) && tries < 12) { by += h * (tries % 2 ? -(tries + 1) : tries + 1); tries++; }
+      if (bx + w > X + FW) bx = Number(a.x) - rad(a.net) - 3 * k - w;
+      placed.push({ x: bx, y: by, w, h });
+      node.attr('x', bx).attr('y', by + h * 0.8).style('fill', a.net >= 0 ? dash.colors[3] : dash.colors[0]);
+    }
+  });
+
+  dash.draw('map-caption', (el) => {
+    const d = dash.data('front_map');
+    if (d.status !== 'ok') { el.textContent = '—'; return; }
+    const months = mapWindow(d.data), tot = mapTotals(d.data, months);
+    let gain = 0, loss = 0; for (const v of tot.values()) { gain += v.gain; loss += v.loss; }
+    const occ = d.data.find((r) => r.layer === 'occupied');
+    const span = months.length === 1 ? mon(months[0]) : `${mon(months[0])} to ${mon(months.at(-1))}`;
+    el.textContent = `${span}: Russia took ${f0_(gain)} km² and Ukraine took back ${f0_(loss)} km², a net Russian gain of ${f0_(gain - loss)} km². Russian-held area shown as of ${occ ? occ.name : '—'}.`;
   });
 
   dash.draw('territory', (el) => {
