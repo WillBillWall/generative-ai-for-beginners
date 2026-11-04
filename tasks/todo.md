@@ -137,3 +137,23 @@ Question: which tactics went with territory changing hands, and who held the adv
 - **Tactical edge (timing only):** the May 2025 pick-up lines up with RU motorcycle assaults and fiber-optic FPVs spreading while UA jamming was countered. The 2026 slowdown and stall line up with RU's Rubikon kill zone being countered and UA strikes on drone units spreading.
 - **Before/after limits:** RUSI reviews are excluded (retrospective dates), only turning-point reports are used, and winter windows are flagged. It is still confounded by season and by overlapping events.
 - 22 tests pass; the summary logic was run against the real data.
+
+# More detail (requested 2026-11-04)
+1. Tactical metrics log
+- [x] `schema/metric.schema.json` + `taxonomy.yaml: metrics` (key, label, unit, which direction is better for whom)
+- [x] Seed `data/seed/metrics.csv` from web research: dated, sourced, with value or range, side, confidence. Only figures with a findable date and source.
+- [x] Claude extraction can return metrics too (later, when ISW/RUSI are allowed)
+2. Territory by direction
+- [x] Monthly DeepState snapshots → gained/lost pieces (polygon difference) → each piece assigned to the nearest named front direction (Kupiansk, Pokrovsk, Huliaipole, …), with the anchors' coordinates documented
+3. Front-line shape
+- [x] Per month: number of separate gained pieces, the largest piece, the deepest advance (km from the previous line), and the share of gains in the top direction
+4. Equipment mix
+- [x] Monthly ground-robot, cruise-missile and special-equipment losses; tank losses by design decade from the Oryx 2023 snapshot (labelled as old)
+5. [x] Dashboard "Granular view" section; tests; refresh runbook
+
+## Granular review
+- **Metrics log:** 24 dated, sourced figures across 8 metrics. Figures without a findable date were left out (RUSI's ~1-week drone lifespan, the UK MoD's 80% of casualties). Sensor-to-shooter time has only one dated point (Delta, ~20 → 3-5 min, Aug 2026).
+- **Directions:** month-start map differences reconcile with the area series to within a few km²/month. Nov 2025-Oct 2026 net: Siversk +495, Huliaipole +486, Pokrovsk +334, Kostiantynivka +249 km²; net Ukrainian gains at Velyka Novosilka, Lyman and Novopavlivka.
+- **Shape:** since mid-2026, about 18-23 separate small pieces a month, deepest push 4-8 km, the busiest direction only 23-34% of gains. That is broad, shallow pressure, not breakthroughs.
+- **Oryx 2023:** 47% of confirmed tank losses were models designed or last modernised in the 1980s or earlier.
+- 25 tests pass, including a geometry test with a known 3 km / 12 km² push.

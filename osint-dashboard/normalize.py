@@ -20,7 +20,7 @@ from pathlib import Path
 
 import jsonschema
 
-from ingest import correlate, losses, territory, trends
+from ingest import correlate, equipment, losses, sectors, territory, trends
 from ingest.common import DATA, PROCESSED, SCHEMA, SEED, quarter_of, sides_of, taxonomy
 
 EXTRACTED = DATA / "extracted"
@@ -113,6 +113,25 @@ def check_stage_order(rows: list[dict]) -> None:
         raise ValidationError("stage order: " + " | ".join(problems))
 
 
+def load_metrics() -> list[dict]:
+    """Seed tactical metrics, validated against schema/metric.schema.json and the taxonomy."""
+    v = _validator("metric.schema.json")
+    tax = taxonomy()["metrics"]
+    with (SEED / "metrics.csv").open(newline="") as f:
+        rows = list(csv.DictReader(f))
+    out = []
+    for r in rows:
+        for k in ("value", "value_low", "value_high"):
+            r[k] = float(r[k]) if r[k] not in ("", None) else None
+        errors = [e.message for e in v.iter_errors(r)]
+        if r["metric"] not in tax:
+            errors.append(f"unknown metric {r['metric']!r}")
+        if errors:
+            raise ValidationError(f"{r.get('id')}: " + "; ".join(errors))
+        out.append({**r, "metric_label": tax[r["metric"]]["label"], "unit": tax[r["metric"]]["unit"]})
+    return sorted(out, key=lambda r: (r["metric"], r["date"]))
+
+
 def tactic_shift(quarterly: list[dict]) -> list[dict]:
     """Per-quarter daily rates of claimed Russian losses and the drone:armor ratio."""
     by_q: dict[str, dict] = defaultdict(dict)
@@ -186,6 +205,12 @@ def build(refresh: bool = False, territory_refresh: bool = False) -> dict[str, i
     tmonthly = territory.monthly_rows(tdaily)
     outputs |= {"territory_daily.csv": tdaily, "territory_monthly.csv": tmonthly}
     outputs |= correlate.run(tmonthly, monthly, obs, refresh=refresh)
+    outputs |= sectors.run()
+    mod_raw = losses.fetch_json(losses.UA_MOD_URL, "ua_mod_equipment.json", False)
+    oryx_raw = losses.fetch_json(losses.ORYX_URL, "oryx_models.json", False)
+    outputs |= {"equipment_monthly.csv": equipment.equipment_monthly(mod_raw),
+                "oryx_tank_age.csv": equipment.oryx_tank_age(oryx_raw),
+                "metrics.csv": load_metrics()}
     for name, rows in outputs.items():
         write_csv(PROCESSED / name, rows)
     return {k: len(v) for k, v in outputs.items()}

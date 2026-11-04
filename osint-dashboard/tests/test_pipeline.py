@@ -251,3 +251,34 @@ def test_advantage_periods_bands():
             for m, v in [("2025-01", 12), ("2025-02", 10), ("2025-03", 5), ("2025-04", 1), ("2025-05", -2)]]
     bands = [p["band"] for p in correlate.advantage_periods(rows)]
     assert bands == ["Russia advancing fast", "Russia advancing slowly", "Front stalled", "Ukraine gaining"]
+
+
+
+# --- granular views ---------------------------------------------------------
+from shapely.geometry import box
+from ingest import equipment, sectors
+
+
+def test_sector_compare_assigns_and_measures_depth():
+    pok = sectors._ANCHOR_PTS[[n for n, *_ in sectors.ANCHORS].index("Pokrovsk")][1]
+    x, y = pok.x, pok.y
+    prev = box(x - 20000, y - 20000, x, y + 20000)                  # line runs north-south through Pokrovsk
+    cur = prev.union(box(x, y - 2000, x + 3000, y + 2000))          # a 3 km deep, 12 km² push
+    res = sectors.compare(prev, cur)
+    assert res["shape"]["gained_pieces"] == 1
+    assert res["shape"]["max_depth_km"] == pytest.approx(3.0, abs=0.01)
+    assert res["by_direction"]["Pokrovsk"]["gained_km2"] == pytest.approx(12.0, abs=0.01)
+    assert res["shape"]["top_direction"] == "Pokrovsk" and res["shape"]["top_direction_share"] == 1.0
+
+
+def test_tank_design_year():
+    assert equipment.tank_design_year("T-72B3 Obr. 2016") == 2016
+    assert equipment.tank_design_year("T-62M") == 1961
+    assert equipment.tank_design_year("T-90M") == 2020
+    assert equipment.tank_design_year("BMP-2") is None
+
+
+def test_metrics_seed_valid():
+    rows = normalize.load_metrics()
+    assert rows and all(r["source_url"].startswith("https://") for r in rows)
+    assert {r["metric"] for r in rows} <= set(normalize.taxonomy()["metrics"])

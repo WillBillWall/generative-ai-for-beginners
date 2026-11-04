@@ -106,3 +106,15 @@ phrases:
   drone_ambush: drones waiting in ambush on supply routes
   drone_c2_strike: strikes on drone units' bases and command posts
   dedicated_drone_branch: dedicated drone forces
+
+# Tactical metrics: numbers reported in sources, tracked over time.
+# side = whose capability or activity the number describes.
+metrics:
+  sensor_to_shooter_min: {label: "Time from spotting a target to striking it", unit: "minutes"}
+  fpv_hit_rate_pct: {label: "FPV drone sorties that hit their target", unit: "%"}
+  drone_share_of_casualties_pct: {label: "Share of Russian casualties caused by drones", unit: "%"}
+  ua_drones_per_year: {label: "Drones Ukraine produced or procured per year", unit: "drones"}
+  interceptor_share_pct: {label: "Share of downed Shahed-type drones killed by interceptor drones", unit: "%"}
+  ru_long_range_drones_per_month: {label: "Long-range drones Russia launched per month (incl. decoys)", unit: "drones"}
+  kill_zone_depth_km: {label: "Depth of the drone kill zone from the front line", unit: "km"}
+  glide_bombs_per_month: {label: "Guided glide bombs Russia dropped per month", unit: "bombs"}

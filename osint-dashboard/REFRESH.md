@@ -9,7 +9,7 @@ artifact whose datasets are attached CSV files. To refresh it:
    Then update that dataset document (collection `datasets`, read it first and pin `if_version`):
    set `source.url` to the new `/_blob/…` url and `source.name`, `updated: {at, by: "daily refresh"}`,
    and `edit: {via: "claude", at}`.
-4. Don't change `files/index.html`, and don't touch `claimed_vs_confirmed` (a fixed 2023 snapshot).
+4. Don't change `files/index.html`, and don't touch `claimed_vs_confirmed` or `oryx_tank_age` (fixed 2023 snapshots).
 5. Report what changed: latest date per source, and any test or download failures.
 
 | Dataset id | File in `data/processed/` | Source |
@@ -27,6 +27,10 @@ artifact whose datasets are attached CSV files. To refresh it:
 | `loss_correlations` | `loss_correlations.csv` | derived |
 | `tactic_before_after` | `tactic_before_after.csv` | derived |
 | `advantage_periods` | `advantage_periods.csv` | derived |
+| `metrics` | `metrics.csv` | seed (`data/seed/metrics.csv`), changes only when new figures are added |
+| `territory_by_direction` | `territory_by_direction.csv` | DeepStateMap (month-start maps) |
+| `front_shape` | `front_shape.csv` | DeepStateMap (month-start maps) |
+| `equipment_monthly` | `equipment_monthly.csv` | UA MoD daily |
 
 Sources that need network access first (not yet in the refresh): ISW
 (understandingwar.org / criticalthreats.org), WarSpotting (ukr.warspotting.net),

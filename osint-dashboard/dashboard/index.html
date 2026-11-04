@@ -187,6 +187,68 @@
     </div>
   </section>
 
+  <section class="ut-section" id="granular">
+    <h2 class="ut-h2">Granular view</h2>
+
+    <div class="ut-card">
+      <h3>Tactical metrics over time</h3>
+      <p class="ut-note">Numbers reported in sources, one dot per report, with the range the source gave as a whisker. Blue dots describe Ukrainian capability, orange Russian, green both sides. Faded dots are low-confidence figures. These are officials' and analysts' figures, rarely measured independently, and sources define them differently: read each chart as a direction of travel, not a precise series. Hover a dot for its source, scope and caveats; the full list with links is below.</p>
+      <div class="ut-grid4">
+        <div class="ut-card"><h3>Time from spotting a target to striking it</h3><p class="ut-note">minutes</p><div class="ut-mini ut-mini-tall" data-draw="metric" data-metric="sensor_to_shooter_min" data-source="metrics"></div></div>
+        <div class="ut-card"><h3>FPV drone sorties that hit their target</h3><p class="ut-note">%</p><div class="ut-mini ut-mini-tall" data-draw="metric" data-metric="fpv_hit_rate_pct" data-source="metrics"></div></div>
+        <div class="ut-card"><h3>Share of Russian casualties caused by drones</h3><p class="ut-note">%</p><div class="ut-mini ut-mini-tall" data-draw="metric" data-metric="drone_share_of_casualties_pct" data-source="metrics"></div></div>
+        <div class="ut-card"><h3>Drones Ukraine produced or procured per year</h3><p class="ut-note">drones</p><div class="ut-mini ut-mini-tall" data-draw="metric" data-metric="ua_drones_per_year" data-source="metrics"></div></div>
+        <div class="ut-card"><h3>Share of downed Shahed-type drones killed by interceptor drones</h3><p class="ut-note">%</p><div class="ut-mini ut-mini-tall" data-draw="metric" data-metric="interceptor_share_pct" data-source="metrics"></div></div>
+        <div class="ut-card"><h3>Long-range drones Russia launched per month (incl. decoys)</h3><p class="ut-note">drones</p><div class="ut-mini ut-mini-tall" data-draw="metric" data-metric="ru_long_range_drones_per_month" data-source="metrics"></div></div>
+        <div class="ut-card"><h3>Depth of the drone kill zone from the front line</h3><p class="ut-note">km</p><div class="ut-mini ut-mini-tall" data-draw="metric" data-metric="kill_zone_depth_km" data-source="metrics"></div></div>
+        <div class="ut-card"><h3>Guided glide bombs Russia dropped per month</h3><p class="ut-note">bombs</p><div class="ut-mini ut-mini-tall" data-draw="metric" data-metric="glide_bombs_per_month" data-source="metrics"></div></div>
+      </div>
+      <div class="ut-tablebox">
+        <table class="ut-table" data-source="metrics" data-row-key="id">
+          <thead><tr>
+            <th data-field="date">Date</th>
+            <th data-field="metric_label">Metric</th>
+            <th data-field="value">Value</th>
+            <th data-field="scope">Scope</th>
+            <th data-field="source_title">Source</th>
+            <th data-field="confidence">Confidence</th>
+            <th data-field="note" class="ut-hide-narrow">Note</th>
+          </tr></thead>
+          <tbody data-draw="metrics-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="ut-card">
+      <h3>Where the front moved: net change by direction, last 12 months</h3>
+      <p class="ut-note">km² gained by Russia (orange) or by Ukraine (blue) each month, by front direction. Each piece of ground that changed hands is assigned to the nearest named direction; pieces more than 60 km from all of them count as "Other". Monthly maps are compared on the first day of each month, so totals differ slightly from the monthly chart above. Some changes are DeepState redrawing its map.</p>
+      <div class="ut-chart" data-draw="direction-heat" data-source="territory_by_direction"></div>
+    </div>
+
+    <div class="ut-card">
+      <h3>Shape of the advance</h3>
+      <p class="ut-note">From the same monthly map comparison. Many small pieces and a shallow deepest push mean pressure along a wide front; few large, deep pieces mean concentrated breakthroughs.</p>
+      <div class="ut-grid4">
+        <div><h3>Separate pieces gained</h3><div class="ut-mini ut-mini-tall" data-draw="shape" data-field-key="gained_pieces" data-source="front_shape"></div></div>
+        <div><h3>Deepest advance (km)</h3><div class="ut-mini ut-mini-tall" data-draw="shape" data-field-key="max_depth_km" data-source="front_shape"></div></div>
+        <div><h3>Largest single piece (km²)</h3><div class="ut-mini ut-mini-tall" data-draw="shape" data-field-key="largest_piece_km2" data-source="front_shape"></div></div>
+        <div><h3>Share of gains in the busiest direction</h3><div class="ut-mini ut-mini-tall" data-draw="shape" data-field-key="top_direction_share" data-source="front_shape"></div></div>
+      </div>
+    </div>
+
+    <div class="ut-card">
+      <h3>Equipment detail</h3>
+      <p class="ut-note">Claimed Russian losses per month for equipment the main charts leave out. Ground robots have been reported only since 3 May 2026. The tank-age chart uses Oryx's photo-confirmed losses as of 5 February 2023, the last snapshot available here: by then, nearly half of confirmed tank losses were models designed or last modernised in the 1980s or earlier.</p>
+      <div class="ut-grid4">
+        <div><h3>Ground robots</h3><div class="ut-mini ut-mini-tall" data-draw="equip" data-field-key="ugv" data-source="equipment_monthly"></div></div>
+        <div><h3>Cruise missiles</h3><div class="ut-mini ut-mini-tall" data-draw="equip" data-field-key="cruise_missile" data-source="equipment_monthly"></div></div>
+        <div><h3>Air defense systems</h3><div class="ut-mini ut-mini-tall" data-draw="equip" data-field-key="air_defense" data-source="equipment_monthly"></div></div>
+        <div><h3>Special equipment</h3><div class="ut-mini ut-mini-tall" data-draw="equip" data-field-key="special_equipment" data-source="equipment_monthly"></div></div>
+        <div><h3>Tank losses by design decade (Oryx, Feb 2023)</h3><div class="ut-mini ut-mini-tall" data-draw="tank-age" data-source="oryx_tank_age"></div></div>
+      </div>
+    </div>
+  </section>
+
   <section class="ut-section" id="trends">
     <h2 class="ut-h2">Trend analysis</h2>
     <p class="ut-lede">From <b data-draw="tr-from" data-source="trend_rates" data-field="from_month" data-where="equipment_class=uav&amp;window=last_12m">—</b> to <b data-draw="tr-to" data-source="trend_rates" data-field="to_month" data-where="equipment_class=uav&amp;window=last_12m">—</b>, claimed Russian drone losses changed by <b data-draw="tr-uav" data-source="trend_rates" data-field="per_quarter_pct" data-where="equipment_class=uav&amp;window=last_12m">—</b> a quarter and logistics vehicle losses by <b data-draw="tr-veh" data-source="trend_rates" data-field="per_quarter_pct" data-where="equipment_class=vehicles&amp;window=last_12m">—</b>, while tank losses changed by <b data-draw="tr-tank" data-source="trend_rates" data-field="per_quarter_pct" data-where="equipment_class=tank&amp;window=last_12m">—</b>. New tactics first reported in 2025 began spreading a median of <b data-draw="tr-spread" data-source="adaptation_by_year" data-field="median_months_to_spread" data-where="first_year=2025">—</b> months after they were first seen. For the one tactic measured from 2023 it took <b data-draw="tr-spread0" data-source="adaptation_by_year" data-field="median_months_to_spread" data-where="first_year=2023">—</b> months, which hints that adaptation is speeding up, though it rests on few cases.</p>
@@ -969,6 +1031,151 @@
       }
       tb.append(tr);
     }
+  });
+
+  // Generic labelled bar series for the granular minis
+  function miniBars(el, rows, opts) {
+    el.replaceChildren();
+    const W = el.clientWidth || 260, H = 136, m = { t: 22, r: 4, b: 18, l: 4 };
+    const x = d3.scaleBand(rows.map((r) => r.k), [m.l, W - m.r]).padding(0.2);
+    const y = d3.scaleLinear([0, d3.max(rows, (r) => r.v) || 1], [H - m.b, m.t]);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', H - m.b).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-axis)');
+    svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', (r) => x(r.k)).attr('width', x.bandwidth())
+      .attr('y', (r) => y(r.v)).attr('height', (r) => H - m.b - y(r.v)).attr('rx', Math.min(2, x.bandwidth() / 2))
+      .attr('fill', (r, i) => (i === rows.length - (opts.partialLast ? 2 : 1) ? dash.colors[0] : 'var(--cds-chart-muted)'))
+      .attr('opacity', (r, i) => (opts.partialLast && i === rows.length - 1 ? 0.45 : 1));
+    const latest = rows[rows.length - (opts.partialLast ? 2 : 1)];
+    if (latest) svg.append('text').attr('class', 'ut-strong').attr('text-anchor', 'end').attr('x', W - m.r).attr('y', 14).text(`Latest ${opts.fmt(latest.v)} · peak ${opts.fmt(d3.max(rows, (r) => r.v))}`);
+    svg.append('text').attr('x', m.l).attr('y', H - 4).text(opts.firstLabel(rows[0]));
+    svg.append('text').attr('x', W - m.r).attr('y', H - 4).attr('text-anchor', 'end').text(opts.firstLabel(rows.at(-1)));
+    const t = tip_(el);
+    svg.selectAll('rect').on('pointerenter', (ev, r) => {
+      t.hidden = false; t.innerHTML = '';
+      const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = opts.tipKey(r);
+      const v = document.createElement('div'); v.textContent = opts.tipVal(r);
+      t.append(k, v);
+      const [px, py] = d3.pointer(ev, el); place_(t, el, px, py);
+    }).on('pointerleave', () => { t.hidden = true; });
+  }
+  const mon = (m) => d3.utcFormat('%b %Y')(new Date(m + '-15'));
+
+  dash.draw('metric', (el) => {
+    el.replaceChildren();
+    const d = dash.data('metrics');
+    if (d.status !== 'ok') { el.textContent = '—'; return; }
+    const key = el.dataset.metric;
+    const rows = d.data.filter((r) => r.metric === key).map((r) => ({ ...r, t: new Date(r.date), v: Number(r.value),
+      lo: r.value_low === '' || r.value_low == null ? null : Number(r.value_low), hi: r.value_high === '' || r.value_high == null ? null : Number(r.value_high) }));
+    if (!rows.length) { el.textContent = 'No reports yet'; return; }
+    const W = el.clientWidth || 260, H = 136, m = { t: 22, r: 10, b: 18, l: 10 };
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const x = d3.scaleUtc([new Date('2024-06-01'), new Date()], [m.l, W - m.r]);
+    const y = d3.scaleLinear([0, d3.max(rows, (r) => Math.max(r.v, r.hi ?? 0)) * 1.1], [H - m.b, m.t]);
+    const short = (v) => (v >= 1e6 ? `${d3.format('.1f')(v / 1e6)}M` : v >= 1e4 ? `${d3.format('.0f')(v / 1e3)}k` : d3.format(',')(Math.round(v * 10) / 10));
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', H - m.b).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-axis)');
+    svg.append('g').selectAll('text').data(x.ticks(d3.utcYear.every(1))).join('text').attr('x', x).attr('y', H - 4).attr('text-anchor', 'middle').text(d3.utcFormat('%Y'));
+    const color = (r) => dash.colors[r.side === 'RU' ? 3 : r.side === 'UA' ? 0 : 2];
+    const g = svg.append('g').selectAll('g').data(rows).join('g');
+    g.filter((r) => r.lo != null && r.hi != null).append('line').attr('x1', (r) => x(r.t)).attr('x2', (r) => x(r.t)).attr('y1', (r) => y(r.lo)).attr('y2', (r) => y(r.hi))
+      .attr('stroke', color).attr('stroke-width', 2).attr('opacity', 0.6);
+    g.append('circle').attr('cx', (r) => x(r.t)).attr('cy', (r) => y(r.v)).attr('r', 4.5).attr('fill', color).attr('opacity', (r) => (r.confidence === 'low' ? 0.45 : 1));
+    const last = rows.at(-1);
+    svg.append('text').attr('class', 'ut-strong').attr('text-anchor', 'end').attr('x', W - m.r).attr('y', 14).text(`Latest ${short(last.v)} (${d3.utcFormat('%b %Y')(last.t)})`);
+    const t = tip_(el);
+    g.on('pointerenter', (ev, r) => {
+      t.hidden = false; t.innerHTML = '';
+      const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = `${r.date} · ${r.scope} · ${r.confidence} confidence`;
+      const v = document.createElement('div'); v.textContent = `${short(r.v)}${r.lo != null ? ` (range ${short(r.lo)}–${short(r.hi)})` : ''} — ${r.source_title}`;
+      const n = document.createElement('div'); n.className = 'ut-tip-k'; n.textContent = r.note;
+      t.append(k, v, n);
+      const [px, py] = d3.pointer(ev, el); place_(t, el, px, py);
+    }).on('pointerleave', () => { t.hidden = true; });
+  });
+
+  dash.draw('metrics-table', (tb) => {
+    tb.replaceChildren();
+    const d = dash.data('metrics');
+    if (d.status !== 'ok') return;
+    for (const r of d.data.slice().sort((a, b) => b.date.localeCompare(a.date))) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.id;
+      const cells = [r.date, r.metric_label,
+        `${d3.format(',')(Number(r.value))}${r.value_low !== '' && r.value_low != null ? ` (${d3.format(',')(Number(r.value_low))}–${d3.format(',')(Number(r.value_high))})` : ''} ${r.unit}`, r.scope];
+      for (const c of cells) { const td = document.createElement('td'); td.textContent = c; tr.append(td); }
+      const src = document.createElement('td');
+      const a = document.createElement('a'); a.href = r.source_url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = r.source_title;
+      src.append(a); tr.append(src);
+      const cf = document.createElement('td'); cf.textContent = r.confidence; tr.append(cf);
+      const nt = document.createElement('td'); nt.className = 'ut-hide-narrow'; nt.textContent = r.note; tr.append(nt);
+      tb.append(tr);
+    }
+  });
+
+  dash.draw('direction-heat', (el) => {
+    el.replaceChildren();
+    const d = dash.data('territory_by_direction');
+    if (d.status !== 'ok') { el.textContent = '—'; return; }
+    const months = [...new Set(d.data.map((r) => r.month))].sort().slice(-12);
+    const rows = d.data.filter((r) => months.includes(r.month));
+    const totals = d3.rollup(rows, (v) => d3.sum(v, (r) => Number(r.net_km2)), (r) => r.direction);
+    const dirs = [...totals.keys()].sort((a, b) => totals.get(b) - totals.get(a));
+    const cell = new Map(rows.map((r) => [`${r.direction}|${r.month}`, Number(r.net_km2)]));
+    const W = Math.max(el.clientWidth || 700, 560), rowH = 24, top = 22;
+    const H = top + dirs.length * rowH + 4;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const lab = svg.append('g');
+    dirs.forEach((dn, i) => { const tx = lab.append('text').attr('x', 0).attr('y', top + i * rowH + rowH / 2 + 4); tx.append('tspan').text(dn); tx.append('tspan').attr('dx', 6).text(`${totals.get(dn) >= 0 ? '+' : ''}${f0_(totals.get(dn))}`); });
+    let lw = 0; lab.selectAll('text').each(function () { lw = Math.max(lw, this.getComputedTextLength()); });
+    const left = Math.min(lw + 12, W * 0.35);
+    fit_(lab.selectAll('text'), left - 10);
+    const x = d3.scaleBand(months, [left, W - 4]).padding(0.06);
+    svg.append('g').selectAll('text').data(months).join('text').attr('x', (mm) => x(mm) + x.bandwidth() / 2).attr('y', 14).attr('text-anchor', 'middle')
+      .text((mm, i) => (i === 0 || mm.endsWith('-01') ? d3.utcFormat('%b %y')(new Date(mm + '-15')) : d3.utcFormat('%b')(new Date(mm + '-15'))));
+    const maxAbs = d3.max([...cell.values()], (v) => Math.abs(v)) || 1;
+    const t = tip_(el);
+    for (const [i, dn] of dirs.entries()) {
+      for (const mm of months) {
+        const v = cell.get(`${dn}|${mm}`) ?? 0;
+        const r = svg.append('rect').attr('x', x(mm)).attr('y', top + i * rowH + 2).attr('width', x.bandwidth()).attr('height', rowH - 4).attr('rx', 2)
+          .attr('fill', v >= 0 ? dash.colors[3] : dash.colors[0]).attr('opacity', v === 0 ? 0.06 : 0.15 + 0.85 * Math.sqrt(Math.abs(v) / maxAbs));
+        if (Math.abs(v) >= 15 && x.bandwidth() > 26) svg.append('text').attr('x', x(mm) + x.bandwidth() / 2).attr('y', top + i * rowH + rowH / 2 + 4).attr('text-anchor', 'middle').attr('class', 'ut-strong').text(f0_(v));
+        r.on('pointerenter', (ev) => {
+          t.hidden = false; t.innerHTML = '';
+          const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = `${dn} · ${mon(mm)}`;
+          const vv = document.createElement('div'); vv.textContent = v === 0 ? 'No change measured' : `${v > 0 ? 'Russia' : 'Ukraine'} net gain of ${f1_(Math.abs(v))} km²`;
+          t.append(k, vv);
+          const [px, py] = d3.pointer(ev, el); place_(t, el, px, py);
+        }).on('pointerleave', () => { t.hidden = true; });
+      }
+    }
+  });
+
+  dash.draw('shape', (el) => {
+    const d = dash.data('front_shape');
+    if (d.status !== 'ok') { el.replaceChildren(); el.textContent = '—'; return; }
+    const key = el.dataset.fieldKey, pct = key === 'top_direction_share';
+    const rows = d.data.map((r) => ({ k: r.month, v: Number(r[key]) || 0, dir: r.top_direction }));
+    miniBars(el, rows, { fmt: (v) => (pct ? `${f0_(v * 100)}%` : f1_(v)), firstLabel: (r) => r.k.slice(0, 4), partialLast: false,
+      tipKey: (r) => mon(r.k), tipVal: (r) => (pct ? `${f0_(r.v * 100)}% of gains in ${r.dir}` : f1_(r.v)) });
+  });
+
+  dash.draw('equip', (el) => {
+    const d = dash.data('equipment_monthly');
+    if (d.status !== 'ok') { el.replaceChildren(); el.textContent = '—'; return; }
+    const key = el.dataset.fieldKey;
+    let rows = d.data.map((r) => ({ k: r.month, v: Number(r[key]) || 0 }));
+    if (key === 'ugv') rows = rows.filter((r) => r.k >= '2026-05');
+    else rows = rows.filter((r) => r.k >= '2024-07');
+    miniBars(el, rows, { fmt: f0_, firstLabel: (r) => d3.utcFormat('%b %y')(new Date(r.k + '-15')), partialLast: true,
+      tipKey: (r) => mon(r.k), tipVal: (r) => `${f0_(r.v)} claimed destroyed` });
+  });
+
+  dash.draw('tank-age', (el) => {
+    const d = dash.data('oryx_tank_age');
+    if (d.status !== 'ok') { el.replaceChildren(); el.textContent = '—'; return; }
+    const rows = d.data.map((r) => ({ k: r.design_decade, v: Number(r.tanks_lost), s: Number(r.share) }));
+    miniBars(el, rows, { fmt: f0_, firstLabel: (r) => r.k.replace('Unknown model', 'Unknown'), partialLast: false,
+      tipKey: (r) => r.k, tipVal: (r) => `${f0_(r.v)} confirmed losses (${f0_(r.s * 100)}%)` });
   });
 
   dash.draw('territory', (el) => {
