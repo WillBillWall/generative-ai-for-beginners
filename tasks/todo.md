@@ -82,3 +82,16 @@
 - The adaptation chart now has one labeled row per tactic, with the months written on each bar and the counter-report text in the table. Tactics with no counter report no longer show as "0 months".
 - The timeline shows stage bars from one report to the next, under category headers, with side tags.
 - Mistake caught: a substring match hit `dash.draw('timeline')` inside a click handler and corrupted the script. Restored from git, redone with anchored matching, and syntax-checked. Lesson added.
+
+# Territory + daily refresh (requested 2026-11-04)
+- [x] `ingest/territory.py`: DeepStateMap daily occupied-area polygons (GitHub archive) → occupied km² per day, net daily/monthly change (geodesic area)
+- [x] Tests: area of a known polygon, change series
+- [x] Dashboard: "Front line" card with monthly net Russian gain, tactic reports marked on the same time axis, and a 30-day tile
+- [x] `REFRESH.md` + `refresh.sh`: one command rebuilds everything; the steps say which file goes to which dashboard dataset
+- [x] Scheduled task: daily fresh session that runs the refresh, commits and pushes, and updates the dashboard files
+
+## Territory and refresh review
+- DeepStateMap: 843 daily maps from 2024-07-08 to 2026-11-04, measured as geodesic area. Russian net gain in 2025 was about 4,330 km², close to widely reported totals. Gains slowed from about 15 km²/day in mid-2025 to 0.3–2 km²/day since May 2026.
+- The largest single-day changes are +92 km² (2025-07-04) and -116 km² (2026-08-13). These are likely map redraws, and the chart caveat says so.
+- Scheduled task `trig_01PfhzHd5Kw7MuP5HLafJpCn` runs daily at 04:55 UTC in a fresh session and follows REFRESH.md. Datasets carry `schedule` and `staleAfterHours: 48`.
+- 16 tests pass. The first scheduled run has been fired by hand to prove it works end to end; see its report.

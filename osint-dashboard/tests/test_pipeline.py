@@ -173,3 +173,21 @@ def test_growth_index_baseline_is_spring_2022():
     rows = {r["month"]: r for r in trends.monthly_rates(recs)}
     assert rows["2022-06"]["tank_index_3m"] == 1.0
     assert rows["2022-09"]["tank_index_3m"] == 3.0
+
+
+# --- territory ------------------------------------------------------------
+from ingest import territory
+
+
+def test_geodesic_area_of_one_degree_cell():
+    cell = {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]}}
+    assert territory.area_km2({"features": [cell]}) == pytest.approx(12308.8, rel=1e-3)
+
+
+def test_territory_daily_and_monthly():
+    areas = {"2025-01-30": 100.0, "2025-01-31": 103.0, "2025-02-01": 104.0, "2025-02-28": 112.0}
+    daily = territory.daily_rows(areas)
+    assert [r["change_km2"] for r in daily] == [None, 3.0, 1.0, 8.0]
+    jan, feb = territory.monthly_rows(daily)
+    assert jan["net_change_km2"] == 3.0 and feb["net_change_km2"] == 9.0   # Feb measured from Jan's last day
+    assert feb["km2_per_day"] == pytest.approx(9 / 28, abs=0.05)

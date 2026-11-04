@@ -76,6 +76,11 @@
       <span class="ut-tile-note">Latest full quarter · was <span data-draw="t-tank0" data-source="headline" data-field="tanks_per_day_2022q2">—</span> in spring 2022</span>
     </div>
     <div class="ut-tile">
+      <span class="ut-tile-label">Territory Russia gained, last 30 days</span>
+      <span class="ut-tile-value" data-draw="t-terr" data-source="territory_30d" data-field="net_km2">—</span>
+      <span class="ut-tile-note">To <span data-draw="t-terr-date" data-source="territory_30d" data-field="to_date">—</span> · was <span data-draw="t-terr-prev" data-source="territory_30d" data-field="prev_net_km2">—</span> km² in the 30 days before · DeepStateMap</span>
+    </div>
+    <div class="ut-tile">
       <span class="ut-tile-label">Tactical observations logged</span>
       <span class="ut-tile-value" data-draw="t-obs" data-source="obs_summary" data-field="observations">—</span>
       <span class="ut-tile-note"><span data-draw="t-subtypes" data-source="obs_summary" data-field="subtypes">—</span> tactics tracked, Feb 2022 to now</span>
@@ -96,6 +101,15 @@
       <div class="ut-card"><h3>Drones per day</h3><div class="ut-mini" data-draw="perday" data-metric="uav_per_day" data-source="tactic_shift"></div></div>
     </div>
     <p class="ut-note">Each small chart has its own scale. Ground-robot losses have been reported only since 3 May 2026, so they are not charted yet.</p>
+  </section>
+
+  <section class="ut-section" id="front-line">
+    <h2 class="ut-h2">Front line</h2>
+    <div class="ut-card">
+      <h3>Territory Russia gained each month</h3>
+      <p class="ut-note">Net change in the area DeepStateMap shows under Russian control, in km² per month, from daily maps since July 2024. Bars below zero are net Ukrainian gains. The ticks under the chart are tactic reports from the timeline below, so you can line up changes in the pace with changes in tactics. Some daily changes are DeepState redrawing its map, not movement on the ground.</p>
+      <div class="ut-chart ut-chart-tall" data-draw="territory" data-source="territory_monthly observations"></div>
+    </div>
   </section>
 
   <section class="ut-section" id="trends">
@@ -213,6 +227,7 @@
       <li>Oryx and WarSpotting count only visually confirmed losses, so they undercount. The Oryx figures here come from a mirror last updated in February 2023.</li>
       <li>Observations are paraphrased from ISW, RUSI and news coverage. Many ISW items were read through news reports of its assessments and are marked as secondary.</li>
       <li>ISW and RUSI write from a Western perspective with significant Ukrainian access; Russian-side tactics are often described through Ukrainian reporting.</li>
+      <li>Territory comes from DeepStateMap, a Ukrainian volunteer project. Its map is close to ISW's but not identical, and some day-to-day changes are redrawing rather than fighting.</li>
       <li>Trend fits and shift points are statistics on claimed numbers. A shift can reflect a change in what the ministry counts as much as a change on the battlefield, and the adaptation-speed figures rest on a few dozen observations.</li>
       <li>Unit names are recorded only where a source gives them, and attributions sometimes conflict.</li>
     </ul>
@@ -249,6 +264,21 @@
     },
   });
 
+  dash.calc('territory_30d', {
+    title: 'Territory change, last 30 days',
+    description: 'Net change in Russian-held area over the latest 30 days of DeepStateMap data, and the 30 days before.',
+    inputs: ['territory_daily'],
+    fn: (territory_daily) => {
+      const byDate = new Map(territory_daily.map((r) => [r.date, Number(r.occupied_km2)]));
+      const last = territory_daily[territory_daily.length - 1];
+      if (!last) return [];
+      const back = (iso, n) => { const d = new Date(iso); d.setUTCDate(d.getUTCDate() - n); return d.toISOString().slice(0, 10); };
+      const near = (iso) => { for (let i = 0; i < 5; i++) { const k = back(iso, i); if (byDate.has(k)) return byDate.get(k); } return null; };
+      const now = Number(last.occupied_km2), m30 = near(back(last.date, 30)), m60 = near(back(last.date, 60));
+      return [{ to_date: last.date, net_km2: m30 == null ? null : Math.round(now - m30), prev_net_km2: m30 == null || m60 == null ? null : Math.round(m30 - m60) }];
+    },
+  });
+
   dash.calc('obs_summary', {
     title: 'Observation counts',
     description: 'Number of logged observations and distinct tactics.',
@@ -278,6 +308,14 @@
     el.textContent = s.status === 'ok' && s.data.length ? fmt0(s.data[0][field]) : '—';
   });
   summary('t-obs', 'observations');
+  const terr = (name, pick) => dash.draw(name, (el) => {
+    const d = dash.data('territory_30d');
+    const r = d.status === 'ok' && d.data.length ? d.data[0] : null;
+    el.textContent = r ? pick(r) : '—';
+  });
+  terr('t-terr', (r) => (r.net_km2 == null ? '—' : `${r.net_km2 >= 0 ? '+' : ''}${fmt0(r.net_km2)} km²`));
+  terr('t-terr-prev', (r) => (r.prev_net_km2 == null ? '—' : `${r.prev_net_km2 >= 0 ? '+' : ''}${fmt0(r.prev_net_km2)}`));
+  terr('t-terr-date', (r) => d3.utcFormat('%b %-d, %Y')(new Date(r.to_date)));
   summary('t-subtypes', 'subtypes');
 
   for (const sw of document.querySelectorAll('[data-phase-swatch]')) {
@@ -587,6 +625,51 @@
     g.remove();
     return w;
   };
+
+  dash.draw('territory', (el) => {
+    el.replaceChildren();
+    const d = dash.data('territory_monthly'), o = dash.data('observations');
+    if (d.status !== 'ok' || o.status !== 'ok') { el.textContent = '—'; return; }
+    const rows = d.data.map((r) => ({ ...r, v: Number(r.net_change_km2), t: new Date(r.month + '-01'), full: r.complete === 'True' }));
+    const start = rows[0].t, end = new Date();
+    const obs = o.data.filter((r) => new Date(r.date) >= start);
+    const W = el.clientWidth || 700, H = 290, m = { t: 14, r: 12, b: 64, l: 48 };
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const x = d3.scaleUtc([start, end], [m.l, W - m.r]);
+    const y = d3.scaleLinear([Math.min(0, d3.min(rows, (r) => r.v)), d3.max(rows, (r) => r.v)], [H - m.b, m.t]).nice();
+    svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y)
+      .attr('stroke', (v) => (v === 0 ? 'var(--cds-chart-axis)' : 'var(--cds-chart-grid)'));
+    svg.append('g').selectAll('text').data(y.ticks(4)).join('text').attr('x', m.l - 6).attr('y', (v) => y(v) + 4).attr('text-anchor', 'end').text(d3.format(','));
+    const bw = Math.max(2, (x(new Date('2025-02-01')) - x(new Date('2025-01-01'))) * 0.72);
+    svg.append('g').selectAll('rect').data(rows).join('rect')
+      .attr('x', (r) => x(r.t) + 1).attr('width', bw).attr('y', (r) => y(Math.max(0, r.v))).attr('height', (r) => Math.abs(y(r.v) - y(0)))
+      .attr('rx', 2).attr('fill', (r) => (r.v >= 0 ? dash.colors[3] : dash.colors[0])).attr('opacity', (r) => (r.full ? 1 : 0.45));
+    // tactic report ticks on a strip under the axis
+    const stripY = H - m.b + 22;
+    svg.append('text').attr('x', m.l - 6).attr('y', stripY + 4).attr('text-anchor', 'end').text('Reports');
+    const color = (p) => dash.colors[Math.max(0, ['emerging', 'scaling', 'dominant', 'countered', 'declining'].indexOf(p))];
+    const t = tip_(el);
+    svg.append('g').selectAll('line').data(obs).join('line')
+      .attr('x1', (r) => x(new Date(r.date))).attr('x2', (r) => x(new Date(r.date))).attr('y1', stripY - 7).attr('y2', stripY + 7)
+      .attr('stroke', (r) => color(r.phase)).attr('stroke-width', 3).attr('stroke-linecap', 'round')
+      .on('pointerenter', (ev, r) => {
+        t.hidden = false; t.innerHTML = '';
+        const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = `${r.date} · ${r.subtype_label} · ${r.phase}`;
+        const v = document.createElement('div'); v.textContent = r.summary;
+        t.append(k, v);
+        const [px, py] = d3.pointer(ev, el); place_(t, el, px, py - 60);
+      }).on('pointerleave', () => { t.hidden = true; });
+    svg.append('g').selectAll('text').data(x.ticks(d3.utcYear.every(1))).join('text').attr('x', x).attr('y', H - 8).attr('text-anchor', 'middle').text(d3.utcFormat('%Y'));
+    svg.append('g').selectAll('rect.hit').data(rows).join('rect').attr('class', 'hit')
+      .attr('x', (r) => x(r.t)).attr('width', bw + 2).attr('y', m.t).attr('height', H - m.b - m.t).attr('fill', 'transparent')
+      .on('pointerenter', (ev, r) => {
+        t.hidden = false; t.innerHTML = '';
+        const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = d3.utcFormat('%B %Y')(r.t) + (r.full ? '' : ` (${r.days} days)`);
+        const v = document.createElement('div'); v.textContent = `${r.v >= 0 ? 'Russia gained' : 'Ukraine gained'} ${f0_(Math.abs(r.v))} km² net (${f1_(Math.abs(Number(r.km2_per_day)))} km² a day)`;
+        t.append(k, v);
+        const [px, py] = d3.pointer(ev, el); place_(t, el, px, py);
+      }).on('pointerleave', () => { t.hidden = true; });
+  });
 
   dash.draw('growth', (el) => {
     el.replaceChildren();

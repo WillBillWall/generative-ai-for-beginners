@@ -20,7 +20,7 @@ from pathlib import Path
 
 import jsonschema
 
-from ingest import losses, trends
+from ingest import losses, territory, trends
 from ingest.common import DATA, PROCESSED, SCHEMA, SEED, quarter_of, taxonomy
 
 EXTRACTED = DATA / "extracted"
@@ -114,7 +114,7 @@ def write_csv(path: Path, rows: list[dict]) -> None:
         w.writerows(rows)
 
 
-def build(refresh: bool = False) -> dict[str, int]:
+def build(refresh: bool = False, territory_refresh: bool = False) -> dict[str, int]:
     obs = load_observations()
     cats = taxonomy()["categories"]
     for r in obs:
@@ -148,6 +148,11 @@ def build(refresh: bool = False) -> dict[str, int]:
         "adaptation.csv": adapt,
         "adaptation_by_year.csv": trends.adaptation_by_year(adapt),
     }
+    if refresh or not (PROCESSED / "territory_daily.csv").exists() or territory_refresh:
+        tdaily = territory.daily_rows(territory.update())
+    else:
+        tdaily = territory.daily_rows(territory.load_existing())
+    outputs |= {"territory_daily.csv": tdaily, "territory_monthly.csv": territory.monthly_rows(tdaily)}
     for name, rows in outputs.items():
         write_csv(PROCESSED / name, rows)
     return {k: len(v) for k, v in outputs.items()}

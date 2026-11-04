@@ -15,6 +15,7 @@ Live dashboard: https://claude.ai/artifact/TgMA151TVV89RJkWmBQi8q (private until
 | WarSpotting API | Dated confirmed losses for both sides | `ingest/losses.py` (`fetch_warspotting`) | visually confirmed |
 | ISW daily assessments | Tactical observations | `ingest/reports.py` and Claude extraction | assessed |
 | RUSI papers | Expert assessments of how tactics evolve (EW, drones, assaults); timeline and context only, never loss counts | `ingest/reports.py` and Claude extraction | assessed |
+| DeepStateMap daily maps ([archive](https://github.com/cyterat/deepstate-map-data)) | Area under Russian control per day since July 2024 | `ingest/territory.py` | mapped (volunteer OSINT) |
 | Curated seed | 33 observations Feb 2022–Oct 2026 | `data/seed/observations.csv` | analytic |
 
 ## The data model
@@ -39,6 +40,10 @@ python -m pytest
 `build` writes the trend tables from `ingest/trends.py` (`monthly.csv`, `trend_rates.csv`, `shift_points.csv`, `adaptation.csv`, `adaptation_by_year.csv`), plus `observations.csv`, `losses_quarterly.csv`, `tactic_shift.csv`,
 `oryx_models.csv`, `oryx_by_class.csv` and `claimed_vs_confirmed.csv` to `data/processed/`.
 To refresh the dashboard, upload the new CSVs to its Sources panel.
+
+## Daily refresh
+
+`./refresh.sh` rebuilds everything, downloading only new DeepState days. A scheduled task runs it every day at 04:55 UTC and republishes the dashboard data; the steps are in `REFRESH.md`.
 
 ## Trend methods
 

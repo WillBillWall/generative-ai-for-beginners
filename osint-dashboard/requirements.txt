@@ -5,3 +5,6 @@ beautifulsoup4
 pypdf
 anthropic>=2.4
 pytest
+shapely
+pyproj
+numpy
