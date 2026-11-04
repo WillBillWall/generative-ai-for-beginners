@@ -20,7 +20,7 @@ from pathlib import Path
 
 import jsonschema
 
-from ingest import losses, territory, trends
+from ingest import correlate, losses, territory, trends
 from ingest.common import DATA, PROCESSED, SCHEMA, SEED, quarter_of, sides_of, taxonomy
 
 EXTRACTED = DATA / "extracted"
@@ -183,7 +183,9 @@ def build(refresh: bool = False, territory_refresh: bool = False) -> dict[str, i
         tdaily = territory.daily_rows(territory.update())
     else:
         tdaily = territory.daily_rows(territory.load_existing())
-    outputs |= {"territory_daily.csv": tdaily, "territory_monthly.csv": territory.monthly_rows(tdaily)}
+    tmonthly = territory.monthly_rows(tdaily)
+    outputs |= {"territory_daily.csv": tdaily, "territory_monthly.csv": tmonthly}
+    outputs |= correlate.run(tmonthly, monthly, obs, refresh=refresh)
     for name, rows in outputs.items():
         write_csv(PROCESSED / name, rows)
     return {k: len(v) for k, v in outputs.items()}

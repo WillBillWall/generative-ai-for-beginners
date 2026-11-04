@@ -116,3 +116,24 @@
 - The order check runs on every build. All 33 rows pass; the drops back are new-sector cases (glide bombs at the Fortress Belt, infiltration at Dobropillya).
 - Adaptation per side: Ukraine's jamming spread, then was countered, after 8.8 months. The median months to spread is 20.5 for tactics first seen in 2023 (n=1), 6.5 for 2024 (n=4), and 4.3 for 2025 (n=3).
 - 18 tests pass, including a new order-check test. The summary was re-run against the data.
+
+# Tactics vs territory (requested 2026-11-04)
+Question: which tactics went with territory changing hands, and who held the advantage?
+- [x] Add UA MoD claimed Russian personnel losses (same mirror) to the monthly series
+- [x] `ingest/correlate.py`:
+  - monthly join, Jul 2024 onward: km²/day gained against per-day losses (personnel, tanks, armored vehicles, artillery, drones, logistics vehicles)
+  - cost of advance: Russian personnel and armored vehicles lost per km² gained (3-month rolling)
+  - correlations (Spearman, with the loss series leading by 0, 1 and 2 months), n reported, labelled indicative
+  - before/after: for each tactic report, average km²/day over the 3 months before vs the 3 months after, per side
+  - advantage periods: split the months into stretches where Russia was advancing cheaply, advancing expensively, or stalled
+- [x] Tests with synthetic series and known answers
+- [x] Dashboard section "What was working", with a summary written from the data
+- [x] Caveats in the page: claimed losses, a small n, overlapping events, correlation is not cause
+
+## Tactics vs territory review
+- **First pass misleading:** level correlations of -0.7 to -0.8 for drones, logistics and artillery came from opposite trends alone. Month-to-month changes give |rho| at most 0.33 with n=26, i.e. no single loss type tracks the front.
+- **Strongest signal is cost:** claimed Russian casualties per km² gained rose from about 90-100 (2024-25 fast phases) to about 890 (Jun-Oct 2026 stall), roughly 9 times, while daily Russian losses rose.
+- **Advantage periods:** fast Aug 2024-Feb 2025, slow Mar-Apr 2025, fast May 2025-Feb 2026, slow Mar-May 2026, stalled since Jun 2026.
+- **Tactical edge (timing only):** the May 2025 pick-up lines up with RU motorcycle assaults and fiber-optic FPVs spreading while UA jamming was countered. The 2026 slowdown and stall line up with RU's Rubikon kill zone being countered and UA strikes on drone units spreading.
+- **Before/after limits:** RUSI reviews are excluded (retrospective dates), only turning-point reports are used, and winter windows are flagged. It is still confounded by season and by overlapping events.
+- 22 tests pass; the summary logic was run against the real data.

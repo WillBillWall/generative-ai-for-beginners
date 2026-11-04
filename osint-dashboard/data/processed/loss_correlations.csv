@@ -1,0 +1,7 @@
+series,label,n_months,rho_levels,rho_change_lag0,rho_change_lag1
+personnel_per_day,Russian personnel,26,-0.21,0.3,-0.07
+tank_per_day,Tanks,26,0.3,-0.02,-0.32
+afv_per_day,Armored vehicles,26,0.22,0.08,0.21
+artillery_per_day,Artillery,26,-0.67,-0.33,-0.29
+uav_per_day,Drones,26,-0.68,-0.26,-0.1
+vehicles_per_day,Logistics vehicles,26,-0.81,-0.18,-0.19

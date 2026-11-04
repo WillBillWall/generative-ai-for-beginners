@@ -26,6 +26,7 @@
   .ut-growth { position: relative; min-height: 15rem; }
   .ut-mini-tall { min-height: 9rem; }
   .ut-chart-tall { min-height: 18rem; }
+  .ut-chart-adv { min-height: 20rem; }
   .ut-legend-left { margin-left: 0; }
   .ut-sw-peak { background: var(--cds-chart-muted); outline: 1.5px solid var(--color-fg); outline-offset: -1.5px; }
   .ut-sw-partial { background: var(--cds-chart-muted); opacity: 0.45; }
@@ -121,6 +122,68 @@
       <h3>Territory Russia gained each month</h3>
       <p class="ut-note">Net change in the area DeepStateMap shows under Russian control, in km² per month, from daily maps since July 2024. Bars below zero are net Ukrainian gains. The ticks under the chart are tactic reports from the timeline below, so you can line up changes in the pace with changes in tactics. Some daily changes are DeepState redrawing its map, not movement on the ground.</p>
       <div class="ut-chart ut-chart-tall" data-draw="territory" data-source="territory_monthly observations"></div>
+    </div>
+  </section>
+
+  <section class="ut-section" id="what-worked">
+    <h2 class="ut-h2">What was working, and who held the advantage</h2>
+    <div class="ut-summary" data-draw="worked-summary" data-source="advantage_periods tactic_before_after loss_correlations">—</div>
+
+    <div class="ut-card">
+      <h3>Pace of Russian gains, and what each km² cost</h3>
+      <p class="ut-note">Top: Russia's net gain in km² a day (3-month average), colored by period. Bottom: claimed Russian personnel losses (killed and wounded) for each km² gained, 3-month rolling, log scale. When gains fall while the cost per km² rises, attacking is getting more expensive and the defender is gaining the advantage.</p>
+      <div class="ut-legend ut-legend-left">
+        <span><i class="ut-sw ut-sw-bar" data-band-swatch="Russia advancing fast"></i>Russia advancing fast (8+ km²/day)</span>
+        <span><i class="ut-sw ut-sw-bar" data-band-swatch="Russia advancing slowly"></i>Advancing slowly (3–8)</span>
+        <span><i class="ut-sw ut-sw-bar" data-band-swatch="Front stalled"></i>Front stalled (0–3)</span>
+        <span><i class="ut-sw ut-sw-bar" data-band-swatch="Ukraine gaining"></i>Ukraine gaining</span>
+      </div>
+      <div class="ut-chart ut-chart-adv" data-draw="advantage" data-source="territory_vs_losses"></div>
+    </div>
+
+    <div class="ut-card">
+      <h3>Who had the edge, period by period</h3>
+      <p class="ut-note">Each period is a run of months at the same pace (3-month average). The tactic columns list each side's turning-point reports from three months before a period began to one month after. They are the changes that line up in time with the shift, not proven causes. Cost is claimed Russian casualties per km² gained.</p>
+      <div class="ut-tablebox">
+        <table class="ut-table" data-source="advantage_periods" data-row-key="from_month">
+          <thead><tr>
+            <th data-field="band">Period</th>
+            <th data-field="from_month">From</th>
+            <th data-field="to_month">To</th>
+            <th data-field="km2_per_day">km² a day</th>
+            <th data-field="personnel_per_km2">Cost per km²</th>
+            <th data-field="ru_changes">Russian tactic changes</th>
+            <th data-field="ua_changes">Ukrainian tactic changes</th>
+          </tr></thead>
+          <tbody data-draw="periods-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="ut-card">
+      <h3>How the front moved after key tactic reports</h3>
+      <p class="ut-note">For each turning-point report (a tactic first seen, stepping up a stage, or being countered), this shows the change in Russia's average daily gain from the 3 months before to the 3 months after. Bars to the right mean Russian gains sped up afterwards; bars to the left mean they slowed. ❄ marks windows that include winter months, which slow advances whatever the tactics. RUSI reviews are left out because they describe the year before. This shows timing, not cause.</p>
+      <div class="ut-legend ut-legend-left">
+        <span><i class="ut-sw ut-sw-bar" data-ba-swatch="up"></i>Russian gains sped up after</span>
+        <span><i class="ut-sw ut-sw-bar" data-ba-swatch="down"></i>Russian gains slowed after</span>
+      </div>
+      <div class="ut-chart" data-draw="before-after" data-source="tactic_before_after"></div>
+    </div>
+
+    <div class="ut-card">
+      <h3>Do loss rates move with the front?</h3>
+      <p class="ut-note">Spearman correlation between month-to-month changes in each claimed Russian loss rate and in Russia's daily gain, in the same month and with the loss change one month earlier. With 26 months, anything between −0.4 and 0.4 is too weak to mean much. Raw levels are shown for contrast: they look strong only because the series move in opposite directions over time.</p>
+      <div class="ut-tablebox">
+        <table class="ut-table" data-source="loss_correlations" data-row-key="series">
+          <thead><tr>
+            <th data-field="label">Claimed Russian losses</th>
+            <th data-field="rho_change_lag0">Changes, same month</th>
+            <th data-field="rho_change_lag1">Changes, loss one month earlier</th>
+            <th data-field="rho_levels">Raw levels (misleading)</th>
+          </tr></thead>
+          <tbody data-draw="corr-table"></tbody>
+        </table>
+      </div>
     </div>
   </section>
 
@@ -422,6 +485,9 @@
     sw.style.background = sw.dataset.adaptSwatch === 'spread' ? dash.colors[0] : dash.colors[3];
   }
   for (const sw of document.querySelectorAll('[data-perday-swatch]')) sw.style.background = dash.colors[0];
+  window.utBand = { 'Russia advancing fast': 3, 'Russia advancing slowly': 1, 'Front stalled': 0, 'Ukraine gaining': 2 };
+  for (const sw of document.querySelectorAll('[data-band-swatch]')) sw.style.background = dash.colors[window.utBand[sw.dataset.bandSwatch]];
+  for (const sw of document.querySelectorAll('[data-ba-swatch]')) sw.style.background = sw.dataset.baSwatch === 'up' ? dash.colors[3] : dash.colors[0];
   for (const sw of document.querySelectorAll('[data-claims-swatch]')) {
     sw.style.background = sw.dataset.claimsSwatch === 'accent' ? dash.colors[0] : 'var(--cds-chart-muted)';
   }
@@ -744,6 +810,166 @@
     g.remove();
     return w;
   };
+
+  const monthName = (m) => d3.utcFormat('%b %Y')(new Date(m + '-15'));
+  const whoseSide = (s) => (s === 'RU' ? "Russia's" : "Ukraine's");
+
+  dash.draw('worked-summary', (el) => {
+    const ap = dash.data('advantage_periods'), ba = dash.data('tactic_before_after'), lc = dash.data('loss_correlations');
+    if ([ap, ba, lc].some((d) => d.status !== 'ok') || !ap.data.length) { el.textContent = '—'; return; }
+    const periods = ap.data.map((p) => ({ ...p, v: Number(p.km2_per_day), c: Number(p.personnel_per_km2) }));
+    const now = periods.at(-1);
+    const fast = periods.filter((p) => p.band === 'Russia advancing fast');
+    const base = fast[0] || periods[0];
+    const ratio = base.c ? now.c / base.c : null;
+    const span = (p) => `${monthName(p.from_month)}–${monthName(p.to_month)}`;
+    const NAME = { 'Russia advancing fast': 'fast Russian advances', 'Russia advancing slowly': 'slow Russian advances', 'Front stalled': 'a stalled front', 'Ukraine gaining': 'Ukrainian gains' };
+    const s1 = 'Periods by pace: ' + periods.map((p) => `${NAME[p.band]} ${span(p)} (${f1_(p.v)} km² a day, about ${f0_(p.c)} claimed Russian casualties per km²)`).join('; then ') + '.';
+    let s2;
+    if ((now.band === 'Front stalled' || now.band === 'Ukraine gaining') && ratio > 3) {
+      s2 = `On these numbers the advantage has moved to the defender: since ${monthName(now.from_month)} Russia has been paying about ${f0_(ratio)} times as much per km² as in ${monthName(base.from_month)} for a small fraction of the gains.`;
+    } else if (now.band === 'Russia advancing fast') {
+      s2 = `Russia currently holds the initiative, gaining ${f1_(now.v)} km² a day at about ${f0_(now.c)} claimed casualties per km².`;
+    } else {
+      s2 = `Russia keeps the initiative, but at a rising cost: about ${f0_(now.c)} claimed casualties per km² against ${f0_(base.c)} in ${monthName(base.from_month)}.`;
+    }
+    // Why: for each change of period, the tactic changes reported around its start.
+    // Russia's pace rising -> Russia's new tactics and Ukraine's countered ones; falling -> the reverse.
+    const RANK = { 'Ukraine gaining': 0, 'Front stalled': 1, 'Russia advancing slowly': 2, 'Russia advancing fast': 3 };
+    const items = (txt) => (txt ? txt.split('; ') : []);
+    // "a drone-saturated kill zone…" reads wrong after "Russia's": drop the article
+    const strip = (it) => it.replace(/^an? /, '').replace(/ \((\d{4}-\d{2})\)$/, (_, mo) => ` (${monthName(mo)})`);
+    const why = [];
+    for (let i = 1; i < periods.length; i++) {
+      const p = periods[i], up = RANK[p.band] > RANK[periods[i - 1].band];
+      const own = items(up ? p.ru_changes : p.ua_changes).filter((x) => !/ countered \(/.test(x));
+      const theirs = items(up ? p.ua_changes : p.ru_changes).filter((x) => / countered \(/.test(x));
+      if (!own.length && !theirs.length) continue;
+      const parts = [];
+      if (own.length) parts.push(`${up ? "Russia's" : "Ukraine's"} ${own.slice(-2).map(strip).join(' and ')}`);
+      if (theirs.length) parts.push(`${up ? "Ukraine's" : "Russia's"} ${theirs.slice(-1).map(strip).join('')}`);
+      why.push(`the ${up ? 'pick-up' : 'slowdown'} to ${NAME[p.band]} from ${monthName(p.from_month)} lined up with ${parts.join(', and ')}`);
+    }
+    const s3 = why.length
+      ? `Tactical edge: ${why.slice(-3).join('; ')}. These are matches in timing from a few dozen reports, not proof of cause.`
+      : 'No tactic reports line up with the changes of pace.';
+    const strongest = lc.data.map((r) => ({ label: r.label, v: [Number(r.rho_change_lag0), Number(r.rho_change_lag1)].reduce((a, b) => (Math.abs(b) > Math.abs(a) ? b : a)) }))
+      .reduce((a, b) => (Math.abs(b.v) > Math.abs(a.v) ? b : a));
+    const s4 = Math.abs(strongest.v) < 0.4
+      ? `Month to month, no claimed loss type tracks the pace of gains closely (the strongest is ${strongest.label.toLowerCase()}, at ${d3.format('+.2f')(strongest.v)}), so the shift looks gradual and structural rather than driven by one kind of loss.`
+      : `Changes in ${strongest.label.toLowerCase()} losses moved ${strongest.v > 0 ? 'with' : 'against'} the pace of gains (${d3.format('+.2f')(strongest.v)}).`;
+    el.replaceChildren(...[s1, s2, s3, s4].map((txt) => { const q = document.createElement('p'); q.textContent = txt; return q; }));
+  });
+
+  dash.draw('advantage', (el) => {
+    el.replaceChildren();
+    const d = dash.data('territory_vs_losses');
+    if (d.status !== 'ok') { el.textContent = '—'; return; }
+    const bands = [[8, 'Russia advancing fast'], [3, 'Russia advancing slowly'], [0, 'Front stalled'], [-Infinity, 'Ukraine gaining']];
+    const rows = d.data.map((r) => ({ m: r.month, g: Number(r.km2_per_day_3m), c: r.personnel_per_km2_3m === '' || r.personnel_per_km2_3m == null ? null : Number(r.personnel_per_km2_3m) }))
+      .map((r) => ({ ...r, band: bands.find(([lo]) => r.g >= lo)[1] }));
+    const W = el.clientWidth || 700, H = 300, m = { l: 52, r: 12 }, top = [10, 150], bot = [180, 270];
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const x = d3.scaleBand(rows.map((r) => r.m), [m.l, W - m.r]).padding(0.2);
+    const yg = d3.scaleLinear([Math.min(0, d3.min(rows, (r) => r.g)), d3.max(rows, (r) => r.g)], [top[1], top[0]]).nice();
+    const cs = rows.map((r) => r.c).filter((v) => v > 0);
+    const yc = d3.scaleLog([d3.min(cs), d3.max(cs)], [bot[1], bot[0]]).nice();
+    svg.append('g').selectAll('line').data(yg.ticks(3)).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', yg).attr('y2', yg).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('text').data(yg.ticks(3)).join('text').attr('x', m.l - 6).attr('y', (v) => yg(v) + 4).attr('text-anchor', 'end').text(d3.format(','));
+    svg.append('text').attr('x', m.l).attr('y', top[0] + 2).attr('dy', '0.7em').attr('dx', 4).text('km² a day');
+    svg.append('g').selectAll('rect').data(rows).join('rect')
+      .attr('x', (r) => x(r.m)).attr('width', x.bandwidth()).attr('y', (r) => yg(Math.max(0, r.g))).attr('height', (r) => Math.abs(yg(r.g) - yg(0))).attr('rx', 2)
+      .attr('fill', (r) => dash.colors[window.utBand[r.band]]);
+    const cticks = [30, 100, 300, 1000, 3000].filter((v) => v >= yc.domain()[0] && v <= yc.domain()[1]);
+    svg.append('g').selectAll('line').data(cticks).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', yc).attr('y2', yc).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('text').data(cticks).join('text').attr('x', m.l - 6).attr('y', (v) => yc(v) + 4).attr('text-anchor', 'end').text(d3.format(','));
+    svg.append('text').attr('x', m.l).attr('y', bot[0] - 4).attr('dx', 4).text('claimed Russian casualties per km² gained');
+    const pts = rows.filter((r) => r.c > 0);
+    svg.append('path').datum(pts).attr('fill', 'none').attr('stroke', 'var(--color-fg)').attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round')
+      .attr('d', d3.line((r) => x(r.m) + x.bandwidth() / 2, (r) => yc(r.c)));
+    const lastP = pts.at(-1);
+    if (lastP) svg.append('text').attr('class', 'ut-strong').attr('x', x(lastP.m) + x.bandwidth() / 2).attr('y', yc(lastP.c) - 8).attr('text-anchor', 'end').text(f0_(lastP.c));
+    const years = rows.filter((r, i) => i === 0 || r.m.endsWith('-01'));
+    svg.append('g').selectAll('text').data(years).join('text').attr('x', (r) => x(r.m)).attr('y', H - 8).text((r) => r.m.slice(0, 4));
+    const t = tip_(el);
+    svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', (r) => x(r.m)).attr('width', x.bandwidth()).attr('y', top[0]).attr('height', bot[1] - top[0]).attr('fill', 'transparent')
+      .on('pointerenter', (ev, r) => {
+        t.hidden = false; t.innerHTML = '';
+        const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = `${monthName(r.m)} · ${r.band}`;
+        const a = document.createElement('div'); a.textContent = `${f1_(r.g)} km² a day (3-month average)`;
+        const b = document.createElement('div'); b.textContent = r.c ? `${f0_(r.c)} claimed casualties per km² gained` : 'No net gain to measure cost against';
+        t.append(k, a, b);
+        const [px, py] = d3.pointer(ev, el); place_(t, el, px, py);
+      }).on('pointerleave', () => { t.hidden = true; });
+  });
+
+  dash.draw('before-after', (el) => {
+    el.replaceChildren();
+    const d = dash.data('tactic_before_after');
+    if (d.status !== 'ok') { el.textContent = '—'; return; }
+    const rows = d.data.map((r) => ({ ...r, v: Number(r.mean_change_km2_per_day), w: Number(r.winter_months_after) })).sort((a, b) => b.v - a.v);
+    const W = el.clientWidth || 700, lane = 26, m = { t: 6, b: 22 };
+    const H = m.t + rows.length * lane + m.b;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const lab = svg.append('g');
+    rows.forEach((r, i) => {
+      const tx = lab.append('text').attr('x', 0).attr('y', m.t + i * lane + lane / 2 + 4);
+      tx.append('tspan').text(r.subtype_label);
+      tx.append('tspan').attr('dx', 6).text(`${r.side}${r.w >= 2 ? ' ❄' : ''}`);
+    });
+    let lw = 0; lab.selectAll('text').each(function () { lw = Math.max(lw, this.getComputedTextLength()); });
+    const left = Math.min(lw + 14, W * 0.42);
+    fit_(lab.selectAll('text'), left - 14);
+    const max = d3.max(rows, (r) => Math.abs(r.v)) || 1;
+    const x = d3.scaleLinear([-max, max], [left + 40, W - 40]);
+    svg.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', 0).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-axis)');
+    svg.append('text').attr('x', x(-max)).attr('y', H - 6).text('slowed');
+    svg.append('text').attr('x', x(max)).attr('y', H - 6).attr('text-anchor', 'end').text('sped up');
+    const t = tip_(el);
+    const g = svg.append('g').selectAll('g').data(rows).join('g').attr('transform', (r, i) => `translate(0,${m.t + i * lane})`);
+    g.append('rect').attr('x', (r) => Math.min(x(0), x(r.v))).attr('width', (r) => Math.max(2, Math.abs(x(r.v) - x(0)))).attr('y', 6).attr('height', lane - 12).attr('rx', 2)
+      .attr('fill', (r) => (r.v >= 0 ? dash.colors[3] : dash.colors[0])).attr('opacity', (r) => (r.w >= 2 ? 0.45 : 1));
+    g.append('text').attr('class', 'ut-strong').attr('x', (r) => (r.v >= 0 ? x(r.v) + 5 : x(r.v) - 5)).attr('y', lane / 2 + 4)
+      .attr('text-anchor', (r) => (r.v >= 0 ? 'start' : 'end')).text((r) => `${r.v > 0 ? '+' : ''}${f1_(r.v)}`);
+    g.on('pointerenter', (ev, r) => {
+      t.hidden = false; t.innerHTML = '';
+      const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = `${r.subtype_label} · ${r.side === 'RU' ? 'Russia' : 'Ukraine'}`;
+      const a = document.createElement('div'); a.textContent = `Reports: ${r.change_reported}`;
+      const b = document.createElement('div'); b.textContent = `Russian gain ${r.v >= 0 ? 'rose' : 'fell'} by ${f1_(Math.abs(r.v))} km² a day afterwards${r.w >= 2 ? ' (window includes winter)' : ''}`;
+      t.append(k, a, b);
+      const [px, py] = d3.pointer(ev, el); place_(t, el, px, py);
+    }).on('pointerleave', () => { t.hidden = true; });
+  });
+
+  dash.draw('periods-table', (tb) => {
+    tb.replaceChildren();
+    const d = dash.data('advantage_periods');
+    if (d.status !== 'ok') return;
+    for (const r of d.data) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.from_month;
+      for (const f of ['band', 'from_month', 'to_month', 'km2_per_day', 'personnel_per_km2', 'ru_changes', 'ua_changes']) {
+        const td = document.createElement('td');
+        td.textContent = r[f] === '' || r[f] == null ? '—' : f === 'personnel_per_km2' ? f0_(Number(r[f])) : r[f];
+        tr.append(td);
+      }
+      tb.append(tr);
+    }
+  });
+
+  dash.draw('corr-table', (tb) => {
+    tb.replaceChildren();
+    const d = dash.data('loss_correlations');
+    if (d.status !== 'ok') return;
+    for (const r of d.data) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.series;
+      for (const f of ['label', 'rho_change_lag0', 'rho_change_lag1', 'rho_levels']) {
+        const td = document.createElement('td');
+        td.textContent = f === 'label' ? r[f] : (r[f] === '' || r[f] == null ? '—' : d3.format('+.2f')(Number(r[f])));
+        tr.append(td);
+      }
+      tb.append(tr);
+    }
+  });
 
   dash.draw('territory', (el) => {
     el.replaceChildren();

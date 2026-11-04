@@ -211,3 +211,43 @@ def test_stage_order_check():
         normalize.check_stage_order([ok[0], dict(base, id="e", date="2025-06-01", stage="resurgent")])
     normalize.check_stage_order([ok[0], dict(base, id="f", date="2025-01-01", stage="fading"),
                                  dict(base, id="g", date="2026-01-01", stage="resurgent")])
+
+
+
+# --- tactics vs territory -------------------------------------------------
+from ingest import correlate
+
+
+def test_spearman_known_values():
+    assert correlate.spearman([1, 2, 3, 4, 5, 6], [2, 4, 6, 8, 10, 12]) == pytest.approx(1.0)
+    assert correlate.spearman([1, 2, 3, 4, 5, 6], [6, 5, 4, 3, 2, 1]) == pytest.approx(-1.0)
+    assert correlate.spearman([1, 2, 3], [1, 2, 3]) is None          # too few points
+
+
+def test_correlation_uses_changes_not_trends():
+    # both rise steadily (trend), but their month-to-month changes are opposite
+    rows = []
+    for i in range(12):
+        wiggle = 1 if i % 2 else -1
+        rows.append({"km2_per_day": 10 + i + wiggle, **{k: 100 + 5 * i - wiggle for k in correlate.LOSS_SERIES}})
+    rec = correlate.correlations(rows)[0]
+    assert rec["rho_levels"] > 0.8 and rec["rho_change_lag0"] < -0.8
+
+
+def test_turning_points_and_before_after():
+    base = {"subtype_label": "x", "subtype_phrase": "x", "category_label": "y", "tactic_category": "assault", "sector": "S"}
+    obs = [dict(base, id="a", date="2025-04-10", tactic_subtype="t", side="RU", stage="emerging", counter_reported="no", source_org="ISW"),
+           dict(base, id="b", date="2025-05-10", tactic_subtype="t", side="RU", stage="emerging", counter_reported="no", source_org="ISW"),
+           dict(base, id="c", date="2025-04-10", tactic_subtype="u", side="RU", stage="emerging", counter_reported="no", source_org="RUSI")]
+    tp = correlate.turning_points(obs)
+    assert [o["id"] for o in tp] == ["a"]                     # repeat at the same stage and RUSI review excluded
+    rows = [{"month": f"2025-{m:02d}", "km2_per_day": v} for m, v in [(1, 2), (2, 2), (3, 2), (5, 8), (6, 8), (7, 8)]]
+    (r,) = correlate.before_after(rows, obs)
+    assert r["mean_change_km2_per_day"] == 6.0 and r["winter_months_after"] == 0
+
+
+def test_advantage_periods_bands():
+    rows = [{"month": m, "km2_per_day": v, "km2_per_day_3m": v, "personnel_per_km2_3m": 100.0}
+            for m, v in [("2025-01", 12), ("2025-02", 10), ("2025-03", 5), ("2025-04", 1), ("2025-05", -2)]]
+    bands = [p["band"] for p in correlate.advantage_periods(rows)]
+    assert bands == ["Russia advancing fast", "Russia advancing slowly", "Front stalled", "Ukraine gaining"]

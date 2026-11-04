@@ -1,0 +1,13 @@
+row_key,tactic_subtype,side,subtype_label,subtype_phrase,category_label,reports,first_report,last_report,change_reported,mean_change_km2_per_day,winter_months_after
+robot_only_assault|UA,robot_only_assault,UA,Assault conducted without infantry,assaults by ground robots without infantry,Ground robots,2,2024-12-01,2025-02-01,2024-12 emerging; 2025-02 spreading,-9.2,2
+kill_zone|RU,kill_zone,RU,Drone-saturated zone behind the line of contact,a drone-saturated kill zone behind the front,Logistics interdiction,1,2026-01-01,2026-01-01,2026-01 counter reported,-8.1,1
+drone_c2_strike|UA,drone_c2_strike,UA,Strikes on drone units' bases and command,strikes on drone units' bases and command posts,Logistics interdiction,1,2026-03-18,2026-03-18,2026-03 spreading,-6.6,0
+operator_hunting|UA,operator_hunting,UA,Targeting drone crews and their command posts,hunting enemy drone crews,EW & counter-drone,1,2025-08-01,2025-08-01,2025-08 spreading,-5.5,0
+kill_zone|UA,kill_zone,UA,Drone-saturated zone behind the line of contact,a drone-saturated kill zone behind the front,Logistics interdiction,1,2026-06-16,2026-06-16,2026-06 widespread,-2.2,0
+drone_ambush|RU,drone_ambush,RU,Drones loitering or perched on supply routes,drones waiting in ambush on supply routes,Logistics interdiction,1,2025-11-01,2025-11-01,2025-11 emerging,-1.7,3
+small_group_infiltration|RU,small_group_infiltration,RU,Small dismounted groups infiltrating,small infantry groups infiltrating on foot,Assault tactics,1,2025-11-06,2025-11-06,2025-11 widespread,-1.7,3
+fiber_optic_fpv|RU,fiber_optic_fpv,RU,Fiber-optic-guided FPV (jam-resistant),fiber-optic FPV drones that jamming cannot stop,Strike drones,2,2025-01-09,2025-05-21,2025-01 emerging; 2025-05 spreading,-0.2,1
+motorcycle_light_vehicle|RU,motorcycle_light_vehicle,RU,Motorcycle / light vehicle assaults,fast motorcycle and light-vehicle assaults,Assault tactics,2,2025-04-27,2025-07-02,2025-04 spreading; 2025-07 widespread,3.9,0
+jamming|UA,jamming,UA,Radio-frequency jamming of drones,radio jamming of drones,EW & counter-drone,1,2025-06-26,2025-06-26,2025-06 counter reported,6.6,0
+interceptor_drone|UA,interceptor_drone,UA,Drone used to destroy drones,interceptor drones that shoot down other drones,EW & counter-drone,1,2025-04-09,2025-04-09,2025-04 emerging,9.3,0
+fiber_optic_fpv|UA,fiber_optic_fpv,UA,Fiber-optic-guided FPV (jam-resistant),fiber-optic FPV drones that jamming cannot stop,Strike drones,1,2025-05-21,2025-05-21,2025-05 spreading,11.4,0

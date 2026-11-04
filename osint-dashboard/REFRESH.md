@@ -23,6 +23,10 @@ artifact whose datasets are attached CSV files. To refresh it:
 | `adaptation_by_year` | `adaptation_by_year.csv` | derived |
 | `territory_daily` | `territory_daily.csv` | DeepStateMap (GitHub archive) |
 | `territory_monthly` | `territory_monthly.csv` | DeepStateMap |
+| `territory_vs_losses` | `territory_vs_losses.csv` | derived (DeepStateMap + UA MoD) |
+| `loss_correlations` | `loss_correlations.csv` | derived |
+| `tactic_before_after` | `tactic_before_after.csv` | derived |
+| `advantage_periods` | `advantage_periods.csv` | derived |
 
 Sources that need network access first (not yet in the refresh): ISW
 (understandingwar.org / criticalthreats.org), WarSpotting (ukr.warspotting.net),
