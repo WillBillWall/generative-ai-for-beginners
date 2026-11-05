@@ -20,7 +20,7 @@ from pathlib import Path
 
 import jsonschema
 
-from ingest import correlate, equipment, frontmap, losses, sectors, territory, trends
+from ingest import admin, correlate, equipment, frontmap, losses, sectors, territory, trends
 from ingest.common import DATA, PROCESSED, SCHEMA, SEED, quarter_of, sides_of, taxonomy
 
 EXTRACTED = DATA / "extracted"
@@ -210,6 +210,7 @@ def build(refresh: bool = False, territory_refresh: bool = False) -> dict[str, i
     outputs |= correlate.run(tmonthly, monthly, obs, refresh=refresh)
     outputs |= sectors.run()
     outputs |= frontmap.run()
+    outputs |= admin.run()
     mod_raw = losses.fetch_json(losses.UA_MOD_URL, "ua_mod_equipment.json", False)
     oryx_raw = losses.fetch_json(losses.ORYX_URL, "oryx_models.json", False)
     outputs |= {"equipment_monthly.csv": equipment.equipment_monthly(mod_raw),

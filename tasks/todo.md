@@ -162,3 +162,10 @@ Question: which tactics went with territory changing hands, and who held the adv
 - [x] `ingest/frontmap.py`: Ukraine border (Natural Earth 1:50m), latest Russian-held area, 12 months of gained/lost pieces, direction anchors and cities, as SVG paths in km (UTM 37N), 176 KB
 - [x] Rendered the layers in a standalone SVG to check placement (gains along Siversk-Kostiantynivka, Pokrovsk-Dobropillya, Huliaipole; Ukrainian gains near Lyman, Kupiansk, Novopavlivka); fixed the Crimea crop and the duplicate Kherson label
 - [x] Dashboard map card: 1/3/12-month window, bubbles sized by net change, collision-nudged labels, caption with totals; heat table retitled as the month-by-month detail
+
+# Local-boundary map (requested 2026-11-05)
+- [x] Boundaries: geoBoundaries gbOpen UKR (CC BY 4.0). These are pre-2020 units: 495 raions, 10,375 village/town councils (not the 1,469 post-2020 hromadas). The LFS files come via media.githubusercontent.com.
+- [x] `data/reference/admin_east.json` (1.7 MB, committed): 263 raions in the map window and 1,528 councils within 30 km of the front line on the first or latest DeepState day, simplified, in UTM metres
+- [x] `ingest/admin.py run`: per council, share under Russian control now / 1m / 3m / 12m ago / Jul 2024 → `local_map.json` (1.2 MB)
+- [x] Check render matched the expected pattern; dashboard map replaced with a council choropleth (grey = Russian-held, white = Ukrainian-held, orange/blue intensity = share changed), with raion borders, a 4-way period choice, tooltips and a caption
+- [x] Found: the 5 Nov scheduled refresh could not push (the routine has no repo credentials), so it published nothing. Runbook and routine prompt changed so a refused push no longer blocks the dashboard update. I ran the refresh by hand today and published the data to 2026-11-05.

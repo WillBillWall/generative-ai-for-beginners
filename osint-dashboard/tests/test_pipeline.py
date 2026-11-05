@@ -290,3 +290,13 @@ def test_svg_path_in_km():
     assert d.startswith("M") and d.endswith("Z")
     coords = {tuple(map(float, p.split(","))) for p in d[1:-1].split("L")}
     assert coords == {(0.0, 0.0), (2.0, 0.0), (2.0, 1.0), (0.0, 1.0)}
+
+
+
+def test_local_map_reference_and_shares():
+    import json
+    from ingest import admin
+    ref = json.loads(admin.REFERENCE.read_text())
+    assert len(ref["councils"]) > 1000 and len(ref["raions"]) > 200
+    names = {c["raion"] for c in ref["councils"]}
+    assert {"Pokrovsk", "Huliaipole"} & names            # the front band covers known districts
