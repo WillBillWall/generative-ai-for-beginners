@@ -4,7 +4,7 @@ The dashboard is https://claude.ai/artifact/TgMA151TVV89RJkWmBQi8q, a Dashboard-
 artifact whose datasets are attached CSV files. To refresh it:
 
 1. `./osint-dashboard/refresh.sh`. If it fails, stop and report the error; publish nothing.
-2. Commit the changed `osint-dashboard/data/processed/*.csv` and push to the working branch.
+2. Commit the changed `osint-dashboard/data/processed/*` files and try to push to the working branch. If the push is refused (scheduled sessions may have read-only access), note it in the report and carry on: the dashboard update below doesn't depend on it.
 3. For each dataset below whose CSV changed: upload the CSV as an asset of the artifact.
    Then update that dataset document (collection `datasets`, read it first and pin `if_version`):
    set `source.url` to the new `/_blob/…` url and `source.name`, `updated: {at, by: "daily refresh"}`,
