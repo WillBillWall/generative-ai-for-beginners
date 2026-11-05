@@ -242,8 +242,13 @@
     </div>
 
     <div class="ut-card">
-      <h3>Month by month, by direction</h3>
-      <p class="ut-note">The front line grouped into named directions, month by month: each cell is a direction's net change in km², orange where Russia gained and blue where Ukraine did. Each piece of ground that changed hands is assigned to the nearest named direction; pieces more than 60 km from all of them count as "Other". Monthly maps are compared on the first day of each month, so totals differ slightly from the monthly chart above. Some changes are DeepState redrawing its map.</p>
+      <h3>Ground gained each month, by part of the front</h3>
+      <p class="ut-note">Each row is a stretch of the front, named after its main town. Each cell is the net ground, in km², that changed hands there that month: orange where Russia gained more than it lost, blue where Ukraine did. The last column is the total for the 12 months. Hover a cell for details.</p>
+      <div class="ut-legend ut-legend-left">
+        <span><i class="ut-sw ut-sw-bar" data-map-swatch="gain"></i>Russia gained (darker = more km²)</span>
+        <span><i class="ut-sw ut-sw-bar" data-map-swatch="loss"></i>Ukraine gained</span>
+        <span>Empty: no measurable change</span>
+      </div>
       <div class="ut-chart" data-draw="direction-heat" data-source="territory_by_direction"></div>
     </div>
 
@@ -1147,33 +1152,55 @@
     const totals = d3.rollup(rows, (v) => d3.sum(v, (r) => Number(r.net_km2)), (r) => r.direction);
     const dirs = [...totals.keys()].sort((a, b) => totals.get(b) - totals.get(a));
     const cell = new Map(rows.map((r) => [`${r.direction}|${r.month}`, Number(r.net_km2)]));
-    const W = Math.max(el.clientWidth || 700, 560), rowH = 24, top = 22;
+    const W = Math.max(el.clientWidth || 700, 600), rowH = 26, top = 26;
     const H = top + dirs.length * rowH + 4;
     const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const signed = (v) => (Math.round(v) === 0 ? '' : `${v > 0 ? '+' : '−'}${f0_(Math.abs(v))}`);
     const lab = svg.append('g');
-    dirs.forEach((dn, i) => { const tx = lab.append('text').attr('x', 0).attr('y', top + i * rowH + rowH / 2 + 4); tx.append('tspan').text(dn); tx.append('tspan').attr('dx', 6).text(`${totals.get(dn) >= 0 ? '+' : ''}${f0_(totals.get(dn))}`); });
+    dirs.forEach((dn, i) => lab.append('text').attr('x', 0).attr('y', top + i * rowH + rowH / 2 + 4).text(dn));
     let lw = 0; lab.selectAll('text').each(function () { lw = Math.max(lw, this.getComputedTextLength()); });
-    const left = Math.min(lw + 12, W * 0.35);
+    const left = Math.min(lw + 12, W * 0.28);
     fit_(lab.selectAll('text'), left - 10);
-    const x = d3.scaleBand(months, [left, W - 4]).padding(0.06);
-    svg.append('g').selectAll('text').data(months).join('text').attr('x', (mm) => x(mm) + x.bandwidth() / 2).attr('y', 14).attr('text-anchor', 'middle')
+    // the total column is as wide as its header, so the header can't run off the edge
+    const probe = svg.append('text').attr('class', 'ut-strong').text('12-month total');
+    const totalW = Math.ceil(probe.node().getComputedTextLength()) + 12;
+    probe.remove();
+    const x = d3.scaleBand(months, [left, W - totalW - 8]).padding(0.06);
+    const small = x.bandwidth() < 34;
+    const head = svg.append('g');
+    head.append('text').attr('x', 0).attr('y', 16).text('Part of the front');
+    head.selectAll('text.m').data(months).join('text').attr('x', (mm) => x(mm) + x.bandwidth() / 2).attr('y', 16).attr('text-anchor', 'middle')
       .text((mm, i) => (i === 0 || mm.endsWith('-01') ? d3.utcFormat('%b %y')(new Date(mm + '-15')) : d3.utcFormat('%b')(new Date(mm + '-15'))));
+    head.append('text').attr('class', 'ut-strong').attr('x', W - totalW / 2).attr('y', 16).attr('text-anchor', 'middle').text('12-month total');
     const maxAbs = d3.max([...cell.values()], (v) => Math.abs(v)) || 1;
+    const maxTot = d3.max([...totals.values()], (v) => Math.abs(v)) || 1;
+    const shade = (v, max) => (Math.round(v) === 0 ? 0 : 0.15 + 0.85 * Math.sqrt(Math.abs(v) / max));
     const t = tip_(el);
+    const tipFor = (ev, title, body) => {
+      t.hidden = false; t.innerHTML = '';
+      const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = title;
+      const vv = document.createElement('div'); vv.textContent = body;
+      t.append(k, vv);
+      const [px, py] = d3.pointer(ev, el); place_(t, el, px, py);
+    };
+    const what = (v) => (Math.round(v) === 0 ? 'No measurable change' : `${v > 0 ? 'Russia' : 'Ukraine'} gained a net ${f1_(Math.abs(v))} km²`);
     for (const [i, dn] of dirs.entries()) {
+      const y0 = top + i * rowH + 2, yt = top + i * rowH + rowH / 2 + 4;
       for (const mm of months) {
         const v = cell.get(`${dn}|${mm}`) ?? 0;
-        const r = svg.append('rect').attr('x', x(mm)).attr('y', top + i * rowH + 2).attr('width', x.bandwidth()).attr('height', rowH - 4).attr('rx', 2)
-          .attr('fill', v >= 0 ? dash.colors[3] : dash.colors[0]).attr('opacity', v === 0 ? 0.06 : 0.15 + 0.85 * Math.sqrt(Math.abs(v) / maxAbs));
-        if (Math.abs(v) >= 15 && x.bandwidth() > 26) svg.append('text').attr('x', x(mm) + x.bandwidth() / 2).attr('y', top + i * rowH + rowH / 2 + 4).attr('text-anchor', 'middle').attr('class', 'ut-strong').text(f0_(v));
-        r.on('pointerenter', (ev) => {
-          t.hidden = false; t.innerHTML = '';
-          const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = `${dn} · ${mon(mm)}`;
-          const vv = document.createElement('div'); vv.textContent = v === 0 ? 'No change measured' : `${v > 0 ? 'Russia' : 'Ukraine'} net gain of ${f1_(Math.abs(v))} km²`;
-          t.append(k, vv);
-          const [px, py] = d3.pointer(ev, el); place_(t, el, px, py);
-        }).on('pointerleave', () => { t.hidden = true; });
+        svg.append('rect').attr('x', x(mm)).attr('y', y0).attr('width', x.bandwidth()).attr('height', rowH - 4).attr('rx', 2)
+          .attr('fill', v >= 0 ? dash.colors[3] : dash.colors[0]).attr('fill-opacity', shade(v, maxAbs))
+          .attr('stroke', 'var(--color-border-line)').attr('stroke-width', 0.5)
+          .on('pointerenter', (ev) => tipFor(ev, `${dn} · ${mon(mm)}`, what(v))).on('pointerleave', () => { t.hidden = true; });
+        const lbl = signed(v);
+        if (lbl) svg.append('text').attr('x', x(mm) + x.bandwidth() / 2).attr('y', yt).attr('text-anchor', 'middle')
+          .style('font-size', small ? '10px' : null).style('pointer-events', 'none').attr('class', Math.abs(v) >= 15 ? 'ut-strong' : null).text(lbl);
       }
+      const tv = totals.get(dn);
+      svg.append('rect').attr('x', W - totalW).attr('y', y0).attr('width', totalW).attr('height', rowH - 4).attr('rx', 2)
+        .attr('fill', tv >= 0 ? dash.colors[3] : dash.colors[0]).attr('fill-opacity', shade(tv, maxTot))
+        .on('pointerenter', (ev) => tipFor(ev, `${dn} · last 12 months`, what(tv))).on('pointerleave', () => { t.hidden = true; });
+      svg.append('text').attr('class', 'ut-strong').attr('x', W - totalW / 2).attr('y', yt).attr('text-anchor', 'middle').style('pointer-events', 'none').text(signed(tv) || '0');
     }
   });
 

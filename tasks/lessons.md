@@ -13,3 +13,4 @@
 - **Detrend before correlating time series.** Two series trending in opposite directions correlate strongly by construction. Correlate month-to-month changes, keep the levels only as a labelled contrast, and report n.
 - **Event dates must be when things happened.** Retrospective reviews (e.g. RUSI annual papers) carry publication dates, not onset dates. Exclude them from before/after timing tests.
 - **Show geographic data on a map.** A heat table of "directions" made readers picture the geography themselves. When data has places, draw them where they are first, and keep tables as the detail underneath.
+- **Every number on a chart needs a visible label, and the rule for hiding numbers must be obvious.** The direction table hid values under 15 km² and put unlabelled totals beside the names. Give totals their own labelled column, show all non-zero values, and add a key.
