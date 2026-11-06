@@ -25,7 +25,7 @@ ORYX_URL = f"{MIRROR}/russia_losses_equipment_oryx.json"
 # Last commit touching the Oryx file in the mirror (git log, checked 2026-11-04).
 # The mirror stopped updating it, so the snapshot is old: label it honestly.
 ORYX_AS_OF = "2023-02-05"
-WARSPOTTING_API = "https://ukr.warspotting.net/api/losses/{side}/{date}/{page}"
+WARSPOTTING_API = "https://ukr.warspotting.net/api/losses/{side}/{date}/{page}/"  # trailing slash avoids a redirect
 
 # UA MoD field -> equipment class. Field names changed over time
 # ('military auto' + 'fuel tank' were merged into 'vehicles and fuel tanks').

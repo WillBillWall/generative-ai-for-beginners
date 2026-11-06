@@ -169,3 +169,11 @@ Question: which tactics went with territory changing hands, and who held the adv
 - [x] `ingest/admin.py run`: per council, share under Russian control now / 1m / 3m / 12m ago / Jul 2024 → `local_map.json` (1.2 MB)
 - [x] Check render matched the expected pattern; dashboard map replaced with a council choropleth (grey = Russian-held, white = Ukrainian-held, orange/blue intensity = share changed), with raion borders, a 4-way period choice, tooltips and a caption
 - [x] Found: the 5 Nov scheduled refresh could not push (the routine has no repo credentials), so it published nothing. Runbook and routine prompt changed so a refused push no longer blocks the dashboard update. I ran the refresh by hand today and published the data to 2026-11-05.
+
+# Network access (2026-11-06)
+- [x] New personal environment `generative-ai-for-beginners` (env_0167wGKMjEk9yQRkRMuexESA), approved by the user. It allows understandingwar.org, www.criticalthreats.org, rusi.org, static.rusi.org, ukr.warspotting.net, firms.modaps.eosdis.nasa.gov, www.cfr.org, and raw/media.githubusercontent.com. This session moved onto it.
+- [x] Verified: criticalthreats.org (ISW daily assessments) 200, rusi.org + PDFs 200, cfr.org 200, FIRMS API 200, WarSpotting stats + losses 200 (needs a User-Agent and a trailing slash; records carry geo, unit and weapon tags). understandingwar.org itself shows a bot check, so use the criticalthreats.org mirror.
+- [x] Daily scheduled task recreated on the new environment (trig_016USCpWNhHPNAwNKZ8pKCbU, 04:55 UTC). The old one (trig_01PfhzHd5Kw7MuP5HLafJpCn) is disabled, not deleted, to keep its run history.
+- [ ] FIRMS needs a free MAP_KEY, which goes in the URL path, so the proxy can't inject it as a header. The user has to add it to the environment themselves.
+- [ ] ISW/RUSI extraction with Claude needs an Anthropic API key (api.anthropic.com, x-api-key header), which can be saved with the credential form.
+- [ ] Next: WarSpotting ingest (types → classes, weapon tags), ISW daily extraction, RUSI paper extraction, CFR as a further-reading link
