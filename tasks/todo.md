@@ -184,3 +184,11 @@ Question: which tactics went with territory changing hands, and who held the adv
 - [x] Correction: tags are mostly vehicle features, not weapons (only "Loitering" names a weapon). Pivoted to an adaptations view: cope cage 8% (Aug 2023) → 54% (Feb 2024) → ~75% (2025); jammers 0 → ~25%; turtle armour 0 → 8% (2025) → 19-40% (2026, small n).
 - [x] Live claimed vs confirmed: tanks 3.0×, AFV 2.7×, artillery 33× (definitions differ)
 - [x] Dashboard: armour adaptation chart (3-month rolling, faded where n<30, provisional months shaded), confirmed losses by class, claims card switched to live WarSpotting
+
+# ISW + RUSI coding (option B, 2026-11-06)
+- [x] The credential form refuses Anthropic hosts, and the session's own credentials 401 on direct API calls. So the coding is done by Claude itself (this session for the backfill, the scheduled session daily), not by code calling the API. No key or extra API bill.
+- [x] The criticalthreats.org ISW mirror is JS-templated, so html_paragraphs reads all p/li; tactic_digest keeps takeaways plus front-line tactic paragraphs, about 5.5k chars/day
+- [x] Backfill: 12 ISW reports (23 Oct - 5 Nov; none on 24 and 27 Oct) → 14 observations; RUSI Oct 2025 combined-arms paper → 6 observations; RUSI Apr/May 2026 papers read and not coded (UK force design, not Ukraine tactics)
+- [x] New tactic types: loitering_munition, logistics_hub_strike. New metrics: Lancet/Molniya per week (7,947), FPV hits armour survives (10-15)
+- [x] Persistence: coded rows saved to the dashboard database collection `coded` and restored at the start of each run (restore-extracted), so a refused push loses nothing
+- [x] Runbook steps 0/1b/1c/1d and the scheduled-task prompt updated

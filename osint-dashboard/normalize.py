@@ -243,6 +243,7 @@ def _append_extracted(name: str, rows: list[dict]) -> None:
     with (EXTRACTED / f"{name}.jsonl").open("a") as f:
         f.writelines(json.dumps(r) + "\n" for r in good)
     print(f"{len(good)} observations added ({len(rows) - len(good)} rejected)")
+    return good
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -255,6 +256,8 @@ def main(argv: list[str] | None = None) -> None:
     ad = sub.add_parser("add-observations", help="validate coded observations (JSON list) and append them")
     ad.add_argument("file")
     ad.add_argument("--name", default="isw", help="data/extracted/<name>.jsonl")
+    rs = sub.add_parser("restore-extracted", help="write observations saved in the dashboard database back to data/extracted/daily.jsonl")
+    rs.add_argument("file", help="JSON list of observation rows")
     i = sub.add_parser("isw")
     i.add_argument("date", type=date.fromisoformat)
     r = sub.add_parser("rusi")
@@ -273,9 +276,19 @@ def main(argv: list[str] | None = None) -> None:
         out.write_text(f"SOURCE: ISW Russian Offensive Campaign Assessment, {args.date:%B} {args.date.day}, {args.date.year}\nURL: {url}\n\n{digest}")
         print(out.read_text())
         return
+    if args.cmd == "restore-extracted":
+        rows = json.loads(Path(args.file).read_text())
+        known = {json.loads(l)["id"] for f in EXTRACTED.glob("*.jsonl") if f.name != "daily.jsonl"
+                 for l in f.read_text().splitlines() if l.strip()}
+        keep = {r["id"]: validate_observation(r) for r in rows if r.get("id") and r["id"] not in known}
+        EXTRACTED.mkdir(parents=True, exist_ok=True)
+        (EXTRACTED / "daily.jsonl").write_text("".join(json.dumps(r) + "\n" for r in keep.values()))
+        print(f"restored {len(keep)} observations")
+        return
     if args.cmd == "add-observations":
         rows = json.loads(Path(args.file).read_text())
-        _append_extracted(args.name, rows)
+        added = _append_extracted(args.name, rows)
+        Path(args.file).with_suffix(".added.json").write_text(json.dumps(added, indent=1))
         load_observations()            # re-run the full check, including stage order across all rows
         return
     if args.cmd == "build":
