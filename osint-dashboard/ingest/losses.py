@@ -5,7 +5,8 @@ Sources
   PetroIvaniuk/2022-Ukraine-Russia-War-Dataset (GitHub). Method: claimed.
 - Oryx model-level totals of Russian losses (same mirror, snapshot without dates).
   Method: visually_confirmed.
-- WarSpotting per-loss records (dated, both sides). Method: visually_confirmed.
+- WarSpotting per-loss records (dated, Russian losses only; the API has no Ukrainian data).
+  Method: visually_confirmed. The full ingest lives in ingest/warspotting.py.
   Its API was unreachable from the build environment; parse_warspotting() is
   tested against a fixture only.
 

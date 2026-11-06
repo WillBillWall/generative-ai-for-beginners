@@ -3,7 +3,7 @@
 The dashboard is https://claude.ai/artifact/TgMA151TVV89RJkWmBQi8q, a Dashboard-type
 artifact whose datasets are attached CSV files. To refresh it:
 
-1. `./osint-dashboard/refresh.sh`. If it fails, stop and report the error; publish nothing.
+1. `./osint-dashboard/refresh.sh`. If it fails, stop and report the error; publish nothing. In a fresh container the first WarSpotting fetch takes about 11 minutes (one request a second, their limit is 10 per 10 s); give the command a long timeout or run it in the background.
 2. Commit the changed `osint-dashboard/data/processed/*` files and try to push to the working branch. If the push is refused (scheduled sessions may have read-only access), note it in the report and carry on: the dashboard update below doesn't depend on it.
 3. For each dataset below whose CSV changed: upload the CSV as an asset of the artifact.
    Then update that dataset document (collection `datasets`, read it first and pin `if_version`):
@@ -33,6 +33,9 @@ artifact whose datasets are attached CSV files. To refresh it:
 | `equipment_monthly` | `equipment_monthly.csv` | UA MoD daily |
 | `front_map` | `front_map.json` | DeepStateMap + Natural Earth borders (upload as JSON) |
 | `local_map` | `local_map.json` | DeepStateMap + geoBoundaries council areas (`data/reference/admin_east.json`, upload as JSON) |
+| `warspotting_monthly` | `warspotting_monthly.csv` | WarSpotting API (aggregates only; raw records stay in data/raw) |
+| `warspotting_adaptations` | `warspotting_adaptations.csv` | WarSpotting API tags |
+| `claimed_vs_confirmed_live` | `claimed_vs_confirmed_live.csv` | UA MoD + WarSpotting |
 
 Sources that need network access first (not yet in the refresh): ISW
 (understandingwar.org / criticalthreats.org), WarSpotting (ukr.warspotting.net),

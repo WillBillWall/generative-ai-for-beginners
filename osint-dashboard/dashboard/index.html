@@ -212,6 +212,24 @@
       <p class="ut-note" data-draw="map-caption" data-source="local_map">—</p>
     </div>
 
+    <div class="ut-card" id="armour-adaptation">
+      <h3>How Russia armoured its vehicles against drones</h3>
+      <p class="ut-note">Share of photo-confirmed Russian tank and armoured-vehicle losses that carried each modification, from WarSpotting's records (3-month rolling). The bars underneath are how many armoured losses were confirmed each month: recent months are provisional because photos keep surfacing for months, and percentages from few vehicles are faded. Russian losses only: WarSpotting doesn't track Ukrainian ones.</p>
+      <div class="ut-legend ut-legend-left" data-draw="adapt-legend" data-source="warspotting_adaptations">—</div>
+      <div class="ut-chart ut-chart-tall" data-draw="armour-adapt" data-source="warspotting_adaptations"></div>
+    </div>
+
+    <div class="ut-card">
+      <h3>Photo-confirmed Russian losses by month (WarSpotting)</h3>
+      <p class="ut-note">Losses with photo or video evidence, by the month they happened. The last few months will rise as more footage is found, so treat recent drops with care.</p>
+      <div class="ut-grid4">
+        <div><h3>Tanks</h3><div class="ut-mini ut-mini-tall" data-draw="ws-class" data-field-key="tank" data-source="warspotting_monthly"></div></div>
+        <div><h3>Armoured vehicles</h3><div class="ut-mini ut-mini-tall" data-draw="ws-class" data-field-key="afv" data-source="warspotting_monthly"></div></div>
+        <div><h3>Artillery</h3><div class="ut-mini ut-mini-tall" data-draw="ws-class" data-field-key="artillery" data-source="warspotting_monthly"></div></div>
+        <div><h3>Trucks and transport</h3><div class="ut-mini ut-mini-tall" data-draw="ws-class" data-field-key="vehicles" data-source="warspotting_monthly"></div></div>
+      </div>
+    </div>
+
     <div class="ut-card">
       <h3>Tactical metrics over time</h3>
       <p class="ut-note">Numbers reported in sources, one dot per report, with the range the source gave as a whisker. Blue dots describe Ukrainian capability, orange Russian, green both sides. Faded dots are low-confidence figures. These are officials' and analysts' figures, rarely measured independently, and sources define them differently: read each chart as a direction of travel, not a precise series. Hover a dot for its source, scope and caveats; the full list with links is below.</p>
@@ -353,13 +371,13 @@
   <section class="ut-section" id="claims">
     <h2 class="ut-h2">How far claims run ahead of confirmed losses</h2>
     <div class="ut-card">
-      <h3>Russian losses claimed by Ukraine's MoD vs visually confirmed by Oryx</h3>
-      <p class="ut-note">Cumulative totals on 5 February 2023, the date of the last Oryx snapshot in the public mirror. Oryx only counts losses with photo or video evidence, so it is a floor; MoD claims are unverified. The multiple shows how many claimed losses there were per confirmed one.</p>
+      <h3>Russian losses claimed by Ukraine's MoD vs photo-confirmed by WarSpotting, war to date</h3>
+      <p class="ut-note">Cumulative totals to <span data-draw="claims-date" data-source="claimed_vs_confirmed_live" data-field="as_of">—</span>. WarSpotting only counts losses with photo or video evidence, so it is a floor; the ministry's claims are unverified. The multiple is claimed losses per confirmed one. Artillery's large gap is partly definitions: the ministry counts more kinds of gun and mortar. (The February 2023 Oryx snapshot gave similar multiples for tanks and armoured vehicles, about 2×.)</p>
       <div class="ut-legend">
         <span><i class="ut-sw" data-claims-swatch="muted"></i>Claimed by UA MoD</span>
-        <span><i class="ut-sw" data-claims-swatch="accent"></i>Confirmed by Oryx</span>
+        <span><i class="ut-sw" data-claims-swatch="accent"></i>Photo-confirmed by WarSpotting</span>
       </div>
-      <div class="ut-claims" data-draw="claims" data-source="claimed_vs_confirmed"></div>
+      <div class="ut-claims" data-draw="claims" data-source="claimed_vs_confirmed_live"></div>
     </div>
   </section>
 
@@ -390,7 +408,7 @@
     <h2 class="ut-h2">Reading this data</h2>
     <ul class="ut-caveats">
       <li>Loss rates are Ukrainian MoD claims of Russian losses. They are unverified, biased upward, and cover one side only; read them as a trend, not a count.</li>
-      <li>Oryx and WarSpotting count only visually confirmed losses, so they undercount. The Oryx figures here come from a mirror last updated in February 2023.</li>
+      <li>Oryx and WarSpotting count only visually confirmed losses, so they undercount, and recent months fill in as footage surfaces. WarSpotting covers Russian losses only; the Oryx tank-age figures come from a mirror last updated in February 2023. WarSpotting data is © WarSpotting; only aggregate counts are shown here.</li>
       <li>Observations are paraphrased from ISW, RUSI and news coverage. Many ISW items were read through news reports of its assessments and are marked as secondary.</li>
       <li>ISW and RUSI write from a Western perspective with significant Ukrainian access; Russian-side tactics are often described through Ukrainian reporting.</li>
       <li>Territory comes from DeepStateMap, a Ukrainian volunteer project. Its map is close to ISW's but not identical, and some day-to-day changes are redrawing rather than fighting.</li>
@@ -855,11 +873,16 @@
   });
 
   const CLASS_LABELS = { tank: 'Tanks', afv: 'Armored vehicles', artillery: 'Artillery', mrl: 'Rocket launchers', air_defense: 'Air defense', aircraft: 'Aircraft', helicopter: 'Helicopters' };
+  dash.draw('claims-date', (el) => {
+    const d = dash.data('claimed_vs_confirmed_live');
+    el.textContent = d.status === 'ok' && d.data.length ? d3.utcFormat('%-d %B %Y')(new Date(d.data[0].as_of)) : '—';
+  });
+
   dash.draw('claims', (el) => {
     el.replaceChildren();
-    const d = dash.data('claimed_vs_confirmed');
+    const d = dash.data('claimed_vs_confirmed_live');
     if (d.status !== 'ok') { el.textContent = '—'; return; }
-    const rows = d.data.map((r) => ({ c: r.equipment_class, claimed: +r.ua_mod_claimed, conf: +r.oryx_confirmed, ratio: +r.claimed_to_confirmed }));
+    const rows = d.data.map((r) => ({ c: r.equipment_class, claimed: +r.ua_mod_claimed, conf: +r.warspotting_confirmed, ratio: +r.claimed_to_confirmed }));
     const W = el.clientWidth || 600, row = 34, m = { t: 8, r: 64, b: 8, l: 120 };
     const H = m.t + rows.length * row + m.b;
     const x = d3.scaleLinear([0, d3.max(rows, (r) => r.claimed)], [m.l, W - m.r]);
@@ -1306,6 +1329,67 @@
     }
     const meta = lm.data.find((r) => r.layer === 'meta');
     el.textContent = `In ${WIN_LABEL[window.utMapWin]}, Russia gained ground in ${f0_(ru)} council areas (about ${f0_(kmRu)} km²) and Ukraine in ${f0_(ua)} (about ${f0_(kmUa)} km²). Control as of ${meta ? meta.name : '—'}.`;
+  });
+
+  const ADAPT = ['Anti-drone cage', 'Vehicle-mounted jammer', "Full-cover 'turtle' armour", 'Extra armour', 'Mine plough or roller'];
+  const adaptColor = (i) => dash.colors[[0, 3, 2, 1, 4][i]];
+  dash.draw('adapt-legend', (el) => {
+    el.replaceChildren();
+    ADAPT.forEach((a, i) => {
+      const span = document.createElement('span'); const sw = document.createElement('i'); sw.className = 'ut-sw'; sw.style.background = adaptColor(i);
+      span.append(sw, a); el.append(span);
+    });
+  });
+
+  dash.draw('armour-adapt', (el) => {
+    el.replaceChildren();
+    const d = dash.data('warspotting_adaptations');
+    if (d.status !== 'ok') { el.textContent = '—'; return; }
+    const raw = d.data.map((r) => ({ m: r.month, n: Number(r.armour_losses), c: ADAPT.map((a) => Number(r[a]) || 0) }));
+    const rows = raw.map((r, i) => {          // 3-month rolling shares from summed counts
+      const win = raw.slice(Math.max(0, i - 2), i + 1), n = d3.sum(win, (w) => w.n);
+      return { m: r.m, n: r.n, n3: n, s: ADAPT.map((_, k) => (n ? d3.sum(win, (w) => w.c[k]) / n : null)) };
+    });
+    const W = el.clientWidth || 700, H = 290, m = { t: 12, r: 12, b: 22, l: 40 }, barH = 50, gap = 14;
+    const plotB = H - m.b - barH - gap;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const x = d3.scaleBand(rows.map((r) => r.m), [m.l, W - m.r]).padding(0.15);
+    const cx = (r) => x(r.m) + x.bandwidth() / 2;
+    const y = d3.scaleLinear([0, 1], [plotB, m.t]);
+    svg.append('g').selectAll('line').data([0, 0.25, 0.5, 0.75, 1]).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('text').data([0, 0.5, 1]).join('text').attr('x', m.l - 6).attr('y', (v) => y(v) + 4).attr('text-anchor', 'end').text((v) => `${v * 100}%`);
+    ADAPT.forEach((a, k) => {
+      const pts = rows.filter((r) => r.s[k] != null);
+      svg.append('path').datum(pts).attr('fill', 'none').attr('stroke', adaptColor(k)).attr('stroke-width', 2).attr('stroke-linejoin', 'round')
+        .attr('d', d3.line((r) => cx(r), (r) => y(r.s[k])).defined((r) => r.n3 >= 30));
+      svg.append('path').datum(pts).attr('fill', 'none').attr('stroke', adaptColor(k)).attr('stroke-width', 2).attr('stroke-dasharray', '2 3').attr('opacity', 0.5)
+        .attr('d', d3.line((r) => cx(r), (r) => y(r.s[k])).defined((r, i, arr) => r.n3 < 30 || (arr[i + 1] && arr[i + 1].n3 < 30)));
+    });
+    const yb = d3.scaleLinear([0, d3.max(rows, (r) => r.n) || 1], [H - m.b, H - m.b - barH]);
+    svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', (r) => x(r.m)).attr('width', x.bandwidth()).attr('y', (r) => yb(r.n)).attr('height', (r) => H - m.b - yb(r.n))
+      .attr('fill', 'var(--cds-chart-muted)').attr('opacity', (r, i) => (i >= rows.length - 4 ? 0.45 : 1));
+    svg.append('text').attr('x', m.l - 6).attr('y', H - m.b - barH + 8).attr('text-anchor', 'end').text(d3.format(',')(d3.max(rows, (r) => r.n)));
+    svg.append('g').selectAll('text.yr').data(rows.filter((r) => r.m.endsWith('-01'))).join('text').attr('x', cx).attr('y', H - 6).attr('text-anchor', 'middle').text((r) => r.m.slice(0, 4));
+    const t = tip_(el);
+    svg.append('g').selectAll('rect.hit').data(rows).join('rect').attr('x', (r) => x(r.m)).attr('width', x.bandwidth()).attr('y', m.t).attr('height', H - m.b - m.t).attr('fill', 'transparent')
+      .on('pointerenter', (ev, r) => {
+        t.hidden = false; t.innerHTML = '';
+        const k = document.createElement('div'); k.className = 'ut-tip-k'; k.textContent = `${mon(r.m)} · ${f0_(r.n)} armoured losses confirmed (${f0_(r.n3)} over 3 months)`;
+        t.append(k);
+        ADAPT.forEach((a, i) => { const line = document.createElement('div'); const sw = document.createElement('i'); sw.className = 'ut-sw'; sw.style.background = adaptColor(i);
+          line.append(sw, ` ${a}: ${r.s[i] == null ? '—' : `${f0_(r.s[i] * 100)}%`}`); t.append(line); });
+        const [px, py] = d3.pointer(ev, el); place_(t, el, px, py);
+      }).on('pointerleave', () => { t.hidden = true; });
+  });
+
+  dash.draw('ws-class', (el) => {
+    const d = dash.data('warspotting_monthly');
+    if (d.status !== 'ok') { el.replaceChildren(); el.textContent = '—'; return; }
+    const cls = el.dataset.fieldKey;
+    const by = d3.rollup(d.data.filter((r) => r.equipment_class === cls), (v) => d3.sum(v, (r) => Number(r.total)), (r) => r.month);
+    const rows = [...by.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([k, v]) => ({ k, v }));
+    miniBars(el, rows, { fmt: f0_, firstLabel: (r) => r.k.slice(0, 4), partialLast: true,
+      tipKey: (r) => mon(r.k), tipVal: (r) => `${f0_(r.v)} photo-confirmed` });
   });
 
   dash.draw('territory', (el) => {

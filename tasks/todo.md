@@ -177,3 +177,10 @@ Question: which tactics went with territory changing hands, and who held the adv
 - [ ] FIRMS needs a free MAP_KEY, which goes in the URL path, so the proxy can't inject it as a header. The user has to add it to the environment themselves.
 - [ ] ISW/RUSI extraction with Claude needs an Anthropic API key (api.anthropic.com, x-api-key header), which can be saved with the credential form.
 - [ ] Next: WarSpotting ingest (types → classes, weapon tags), ISW daily extraction, RUSI paper extraction, CFR as a further-reading link
+
+# WarSpotting ingest (requested 2026-11-06)
+- [x] Full history via /api/losses/russia/<ID>/: 23,874 Russian losses, 240 requests at ~1/s (11 min). Raw cache in gitignored data/raw (WarSpotting is all rights reserved); only aggregates are published.
+- [x] Correction: WarSpotting covers Russian losses only (the Ukrainian endpoints are 404). The README and losses.py said "both sides", now fixed.
+- [x] Correction: tags are mostly vehicle features, not weapons (only "Loitering" names a weapon). Pivoted to an adaptations view: cope cage 8% (Aug 2023) → 54% (Feb 2024) → ~75% (2025); jammers 0 → ~25%; turtle armour 0 → 8% (2025) → 19-40% (2026, small n).
+- [x] Live claimed vs confirmed: tanks 3.0×, AFV 2.7×, artillery 33× (definitions differ)
+- [x] Dashboard: armour adaptation chart (3-month rolling, faded where n<30, provisional months shaded), confirmed losses by class, claims card switched to live WarSpotting

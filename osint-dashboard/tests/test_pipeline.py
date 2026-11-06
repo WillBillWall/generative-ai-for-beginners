@@ -300,3 +300,25 @@ def test_local_map_reference_and_shares():
     assert len(ref["councils"]) > 1000 and len(ref["raions"]) > 200
     names = {c["raion"] for c in ref["councils"]}
     assert {"Pokrovsk", "Huliaipole"} & names            # the front band covers known districts
+
+
+# --- WarSpotting ------------------------------------------------------------
+from ingest import warspotting
+
+
+def test_warspotting_classes_adaptations_and_monthly():
+    recs = [
+        {"id": 1, "type": "Tanks", "status": "Destroyed", "date": "2026-09-03", "tags": "Cope cage, Z"},
+        {"id": 2, "type": "Tanks", "status": "Damaged", "date": "2026-09-10", "tags": "Turtle, Jammer, Cope cage"},
+        {"id": 3, "type": "Infantry fighting vehicles", "status": "Captured", "date": "2026-10-01", "tags": None},
+        {"id": 4, "type": "Transport", "status": "Destroyed", "date": "2026-10-02", "tags": "Cope cage"},
+    ]
+    assert warspotting.equipment_class("Tanks") == "tank" and warspotting.equipment_class("Something new") == "other"
+    assert warspotting.adaptations("Turtle, Jammer, Cope cage") == ["Full-cover 'turtle' armour", "Vehicle-mounted jammer", "Anti-drone cage"]
+    assert warspotting.adaptations(None) == []
+    m = {(r["month"], r["equipment_class"]): r for r in warspotting.monthly(recs)}
+    assert m[("2026-09", "tank")]["destroyed"] == 1 and m[("2026-09", "tank")]["damaged"] == 1 and m[("2026-09", "tank")]["total"] == 2
+    a = {r["month"]: r for r in warspotting.adaptation_monthly(recs)}
+    assert a["2026-09"]["armour_losses"] == 2 and a["2026-09"]["Anti-drone cage share"] == 1.0
+    assert a["2026-09"]["Vehicle-mounted jammer share"] == 0.5
+    assert a["2026-10"]["armour_losses"] == 1 and a["2026-10"]["Anti-drone cage"] == 0   # the truck is not armour

@@ -12,7 +12,7 @@ Live dashboard: https://claude.ai/artifact/TgMA151TVV89RJkWmBQi8q (private until
 |---|---|---|---|
 | Ukraine MoD daily totals (via [PetroIvaniuk mirror](https://github.com/PetroIvaniuk/2022-Ukraine-Russia-War-Dataset)) | Russian loss rates by quarter | `ingest/losses.py` | claimed |
 | Oryx (same mirror, snapshot of 2023-02-05) | Visually confirmed Russian losses, by model | `ingest/losses.py` | visually confirmed |
-| WarSpotting API | Dated confirmed losses for both sides | `ingest/losses.py` (`fetch_warspotting`) | visually confirmed |
+| WarSpotting API | Dated, photo-confirmed **Russian** losses (the API covers Russia only), with weapon tags and locations; aggregate counts only are published | `ingest/warspotting.py` | visually confirmed |
 | ISW daily assessments | Tactical observations | `ingest/reports.py` and Claude extraction | assessed |
 | RUSI papers | Expert assessments of how tactics evolve (EW, drones, assaults); timeline and context only, never loss counts | `ingest/reports.py` and Claude extraction | assessed |
 | DeepStateMap daily maps ([archive](https://github.com/cyterat/deepstate-map-data)) | Area under Russian control per day since July 2024 | `ingest/territory.py` | mapped (volunteer OSINT) |
