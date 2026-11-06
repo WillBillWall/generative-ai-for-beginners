@@ -3,8 +3,8 @@
 The dashboard is https://claude.ai/artifact/TgMA151TVV89RJkWmBQi8q, a Dashboard-type
 artifact whose datasets are attached CSV files. To refresh it:
 
-0. **Restore saved observations.** With ArtifactData, list the dashboard's `coded` collection
-   (all documents). Concatenate every document's `rows` into one JSON list, save it to a file, and run
+0. **Restore saved observations, before step 1.** With ArtifactData, list the dashboard's `coded` collection
+   (all documents; read them inline, without `out_dir`, which is refused for this collection). Concatenate every document's `rows` into one JSON list, save it to a file, and run
    `cd osint-dashboard && python3 normalize.py restore-extracted <file>`. (Scheduled sessions may not
    be able to push, so coded observations are kept in the dashboard database, not only in git.)
 1. `./osint-dashboard/refresh.sh`. If it fails, stop and report the error; publish nothing. In a fresh container the first WarSpotting fetch takes about 11 minutes (one request a second, their limit is 10 per 10 s); give the command a long timeout or run it in the background.
@@ -22,10 +22,13 @@ artifact whose datasets are attached CSV files. To refresh it:
    `--name daily` and a `coded` document `rusi-<slug>`. Skip papers about other countries' force design.
 1d. Rebuild without downloading again: `python3 normalize.py build`, then `python3 -m pytest -q`.
 2. Commit the changed `osint-dashboard/data/processed/*` files and try to push to the working branch. If the push is refused (scheduled sessions may have read-only access), note it in the report and carry on: the dashboard update below doesn't depend on it.
-3. For each dataset below whose file changed (after 1d this includes `observations`, `adaptation`, `adaptation_by_year`, `tactic_before_after` and `advantage_periods` when new observations were added): upload the CSV as an asset of the artifact.
-   Then update that dataset document (collection `datasets`, read it first and pin `if_version`):
-   set `source.url` to the new `/_blob/…` url and `source.name`, `updated: {at, by: "daily refresh"}`,
-   and `edit: {via: "claude", at}`.
+3. **Decide what to upload by comparing with the dashboard, not with git.** For each dataset in the
+   table below, compute the local file's sha256 (`sha256sum`) and read the dataset document (collection
+   `datasets`). Upload when `source.sha256` is missing or differs (git can show no change while the
+   dashboard is still behind). For each upload: upload the file as an asset of the artifact, then update
+   the dataset document pinned to its version: `source.url` = the new `/_blob/…` url, `source.name`,
+   `source.sha256` = the file's sha256, `updated: {at, by: "daily refresh"}`, `edit: {via: "claude", at}`.
+   Do all the document updates in one ArtifactData batch.
 4. Don't change `files/index.html`, and don't touch `claimed_vs_confirmed` or `oryx_tank_age` (fixed 2023 snapshots).
 5. Report what changed: latest date per source, and any test or download failures.
 
