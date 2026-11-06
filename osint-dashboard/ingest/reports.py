@@ -25,13 +25,65 @@ def isw_slug(d: date) -> str:
     return f"{d.strftime('%B').lower()}-{d.day}-{d.year}"
 
 
-def html_to_text(html: str) -> str:
+def html_paragraphs(html: str) -> list[str]:
+    """Every paragraph and list item of the page body, in order (works on the JS-templated ISW mirror)."""
     soup = BeautifulSoup(html, "html.parser")
     for tag in soup(["script", "style", "nav", "header", "footer", "aside", "form"]):
         tag.decompose()
-    body = soup.find("article") or soup.find("main") or soup.body or soup
-    lines = (ln.strip() for ln in body.get_text("\n").splitlines())
-    return "\n".join(ln for ln in lines if ln)
+    out = []
+    for el in soup.find_all(["p", "li", "h1", "h2", "h3"]):
+        text = " ".join(el.get_text(" ").split())
+        if text and "{{" not in text and (not out or out[-1] != text):
+            out.append(text)
+    return out
+
+
+def html_to_text(html: str) -> str:
+    return "\n".join(html_paragraphs(html))
+
+
+TACTIC_KEYWORDS = (
+    "drone", "uav", "fpv", "fiber", "fibre", "interceptor", "shahed", "geran", "electronic warfare", " ew ",
+    "jamm", "infiltrat", "motorcycle", "glide bomb", "kab", "mechanized", "armored", "assault group",
+    "small group", "robot", "unmanned ground", "ugv", "logistic", "kill zone", "rubikon", "artillery",
+    "counteroffensive", "counterattack", "cope cage", "turtle",
+)
+
+
+SKIP_KEYWORDS = ("iran", "refinery", "oil ", "diesel", "trump", "kremlin is", "milblogger for his coverage",
+                 "war crimes", "sanction", "negotiat", "ceasefire talks", "humanitarian aid station")
+
+
+def tactic_digest(html: str, max_chars: int = 5500) -> str:
+    """ISW's Key Takeaways plus front-line paragraphs that mention a tactic keyword, capped in length.
+
+    This is what a reader (Claude in the daily task) codes into observations, so a
+    long daily report becomes a few thousand characters of tactic-relevant text.
+    Section headers, the standing war-crimes notice and strategic/diplomatic items are left out.
+    """
+    paras = html_paragraphs(html)
+    takeaways, body, in_takeaways = [], [], False
+    for p in paras:
+        low = f" {p.lower()} "
+        if low.strip().startswith("key takeaways"):
+            in_takeaways = True
+            continue
+        is_sentence = p.rstrip().endswith(".") and len(p) > 40
+        if in_takeaways:
+            if is_sentence and not any(k in low for k in SKIP_KEYWORDS) and "we do not report" not in low:
+                takeaways.append("TAKEAWAY: " + p)
+            elif not is_sentence:
+                in_takeaways = False
+            continue
+        if len(p) > 80 and any(k in low for k in TACTIC_KEYWORDS) and not any(k in low for k in SKIP_KEYWORDS):
+            body.append(p)
+    text, total = [], 0
+    for p in takeaways + body:
+        if total + len(p) > max_chars:
+            continue
+        text.append(p)
+        total += len(p)
+    return "\n\n".join(text)
 
 
 def pdf_to_text(data: bytes) -> str:

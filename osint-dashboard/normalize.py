@@ -225,8 +225,17 @@ def build(refresh: bool = False, territory_refresh: bool = False) -> dict[str, i
 def _append_extracted(name: str, rows: list[dict]) -> None:
     EXTRACTED.mkdir(parents=True, exist_ok=True)
     good = []
+    existing = set()
+    path = EXTRACTED / f"{name}.jsonl"
+    if path.exists():
+        existing = {json.loads(line)["id"] for line in path.read_text().splitlines() if line.strip()}
     for r in rows:
+        r.setdefault("access", "primary")
+        r.setdefault("date_precision", "day")
+        r.setdefault("unit", "")
         r["id"] = obs_id(r)
+        if r["id"] in existing:
+            continue
         try:
             good.append(validate_observation(r))
         except ValidationError as e:
@@ -241,6 +250,11 @@ def main(argv: list[str] | None = None) -> None:
     sub = p.add_subparsers(dest="cmd", required=True)
     b = sub.add_parser("build")
     b.add_argument("--refresh", action="store_true", help="re-download loss data")
+    dg = sub.add_parser("isw-digest", help="save and print the tactic digest of one ISW daily assessment")
+    dg.add_argument("date", type=date.fromisoformat)
+    ad = sub.add_parser("add-observations", help="validate coded observations (JSON list) and append them")
+    ad.add_argument("file")
+    ad.add_argument("--name", default="isw", help="data/extracted/<name>.jsonl")
     i = sub.add_parser("isw")
     i.add_argument("date", type=date.fromisoformat)
     r = sub.add_parser("rusi")
@@ -249,6 +263,21 @@ def main(argv: list[str] | None = None) -> None:
     r.add_argument("date", type=date.fromisoformat)
     args = p.parse_args(argv)
 
+    if args.cmd == "isw-digest":
+        from ingest import reports
+        from ingest.common import RAW, polite_get
+        url = reports.ISW_URL.format(slug=reports.isw_slug(args.date))
+        digest = reports.tactic_digest(polite_get(url).text)
+        out = RAW / "isw" / f"{args.date}.txt"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(f"SOURCE: ISW Russian Offensive Campaign Assessment, {args.date:%B} {args.date.day}, {args.date.year}\nURL: {url}\n\n{digest}")
+        print(out.read_text())
+        return
+    if args.cmd == "add-observations":
+        rows = json.loads(Path(args.file).read_text())
+        _append_extracted(args.name, rows)
+        load_observations()            # re-run the full check, including stage order across all rows
+        return
     if args.cmd == "build":
         for name, n in build(args.refresh).items():
             print(f"{name:24} {n:>6} rows")

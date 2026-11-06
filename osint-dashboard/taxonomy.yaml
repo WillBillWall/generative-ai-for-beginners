@@ -9,6 +9,7 @@ categories:
       fiber_optic_fpv: Fiber-optic-guided FPV (jam-resistant)
       bomber_drone: Multirotor dropping munitions
       long_range_strike: Long-range one-way attack drone (e.g. Shahed/Geran)
+      loitering_munition: Tactical loitering munitions (e.g. Lancet, Molniya)
       uav_complex: Integrated recon-strike drone formation
   uas_isr:
     label: Recon drones
@@ -46,6 +47,7 @@ categories:
       kill_zone: Drone-saturated zone behind the line of contact
       drone_ambush: Drones loitering or perched on supply routes
       drone_c2_strike: Strikes on drone units' bases and command
+      logistics_hub_strike: Strikes on logistics hubs, bridges and river crossings
   force_structure:
     label: Force structure
     subtypes:
@@ -86,6 +88,7 @@ phrases:
   fiber_optic_fpv: fiber-optic FPV drones that jamming cannot stop
   bomber_drone: bomb-dropping drones
   long_range_strike: long-range attack drones
+  loitering_munition: swarms of tactical loitering munitions
   uav_complex: integrated recon-strike drone units
   artillery_spotting: drones spotting for artillery
   persistent_isr: constant drone surveillance of the front
@@ -105,6 +108,7 @@ phrases:
   kill_zone: a drone-saturated kill zone behind the front
   drone_ambush: drones waiting in ambush on supply routes
   drone_c2_strike: strikes on drone units' bases and command posts
+  logistics_hub_strike: strikes on logistics hubs, bridges and river crossings
   dedicated_drone_branch: dedicated drone forces
 
 # Tactical metrics: numbers reported in sources, tracked over time.
@@ -118,3 +122,5 @@ metrics:
   ru_long_range_drones_per_month: {label: "Long-range drones Russia launched per month (incl. decoys)", unit: "drones"}
   kill_zone_depth_km: {label: "Depth of the drone kill zone from the front line", unit: "km"}
   glide_bombs_per_month: {label: "Guided glide bombs Russia dropped per month", unit: "bombs"}
+  ru_tactical_strike_drones_per_week: {label: "Tactical strike drones (Lancet, Molniya) Russia launched per week", unit: "drones"}
+  fpv_hits_armour_survives: {label: "FPV drone hits a modified armoured vehicle can survive", unit: "hits"}
