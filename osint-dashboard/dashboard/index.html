@@ -1294,6 +1294,7 @@
   const WIN_LABEL = { s_1m: 'the last month', s_3m: 'the last 3 months', s_12m: 'the last 12 months', s_start: 'since July 2024' };
   // A council's change over the window: positive = Russia gained share, negative = Ukraine did
   const unitChange = (u) => Number(u.s_now) - Number(u[window.utMapWin]);
+  const normPlace = (v) => String(v || '').toLowerCase().replace(/[yia'’ʼ]/g, '');
   const unitKey = (u) => `${u.name}|${u.raion}|${u.area_km2}`;
   const pctShare = (v) => `${f0_(Number(v) * 100)}%`;
 
@@ -1305,7 +1306,7 @@
     if (fm.status !== 'ok' || lm.status !== 'ok') { el.textContent = '—'; return; }
     const frame = fm.data.find((r) => r.layer === 'frame');
     const X = Number(frame.x), Y = Number(frame.y), FW = Number(frame.w), FH = Number(frame.h);
-    const W = el.clientWidth || 700, H = Math.round(Math.max(320, Math.min(600, W * 0.62)));
+    const W = el.clientWidth || 700, H = Math.round(Math.max(340, Math.min(640, W * 0.7)));
     const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
     svg.append('rect').attr('width', W).attr('height', H).attr('fill', 'var(--color-panel)');
     const root = svg.append('g');
@@ -1361,11 +1362,16 @@
     const raionLab = labels.append('g').selectAll('text').data(raionSel.nodes().map((n, i) => { const b = n.getBBox(); return { name: raions[i].name, x: b.x + b.width / 2, y: -(b.y + b.height / 2), w: b.width }; }))
       .join('text').attr('x', (r) => r.x).attr('y', (r) => r.y).attr('text-anchor', 'middle').text((r) => r.name);
     const cities = fm.data.filter((r) => r.layer === 'city');
+    const cityKeys = cities.map((c) => normPlace(c.name).slice(0, 5));
+    raionLab.filter((r) => cityKeys.includes(normPlace(r.name).slice(0, 5))).remove();
     const cityDot = labels.append('g').selectAll('circle').data(cities).join('circle').attr('cx', (c) => c.x).attr('cy', (c) => -c.y).attr('fill', 'var(--color-fg)');
     const cityLab = labels.append('g').selectAll('text').data(cities).join('text').attr('class', 'ut-strong').attr('y', (c) => -c.y).text((c) => c.name);
 
-    // fitted view: the band of councils along the front
-    const bb = unitsG.node().getBBox();
+    // fitted view: the councils where ground changed hands in the last 12 months
+    const active = unitSel.filter((u) => Math.abs(Number(u.s_now) - Number(u.s_12m)) > 0.02).nodes();
+    const boxes = (active.length ? active : unitSel.nodes()).map((n) => n.getBBox());
+    const bx0 = d3.min(boxes, (b) => b.x), bx1 = d3.max(boxes, (b) => b.x + b.width), by0 = d3.min(boxes, (b) => b.y), by1 = d3.max(boxes, (b) => b.y + b.height);
+    const bb = { x: bx0, y: by0, width: bx1 - bx0, height: by1 - by0 };
     const k0 = 0.94 * Math.min(W / bb.width, H / bb.height);
     const home = { rel: 1, cx: bb.x + bb.width / 2, cy: -(bb.y + bb.height / 2) };
     const toT = (v) => d3.zoomIdentity.translate(W / 2 - v.rel * k0 * v.cx, H / 2 - v.rel * k0 * v.cy).scale(v.rel * k0);
@@ -1380,7 +1386,7 @@
         const px = 1 / tr.k;                             // one screen pixel in km
         cityDot.attr('r', 2.5 * px);
         cityLab.attr('x', (c) => Number(c.x) + 5 * px).attr('dy', 4 * px).style('font-size', `${11 * px}px`);
-        raionLab.style('font-size', `${10 * px}px`).attr('display', (r) => (r.w * tr.k > 70 ? null : 'none'));
+        labels.selectAll('g:first-child text').style('font-size', `${10 * px}px`).attr('display', (r) => (r.w * tr.k > 70 ? null : 'none'));
       });
     svg.call(zoom).call(zoom.transform, toT(window.utMapView || home));
     window.utMapZoom = (what) => {
@@ -1391,7 +1397,6 @@
     };
   });
 
-  const normPlace = (v) => String(v || '').toLowerCase().replace(/[yia'’ʼ]/g, '');
   dash.draw('map-detail', (el) => {
     const lm = dash.data('local_map'), fm = dash.data('front_map'), ob = dash.data('observations');
     el.replaceChildren();
@@ -1419,11 +1424,12 @@
     const near = anchors.map((a) => ({ a, km: Math.hypot(Number(a.x) - sel.x, Number(a.y) - sel.y) })).reduce((p, q) => (q.km < p.km ? q : p));
     const dir = document.createElement('p'); dir.textContent = `Nearest front direction: ${near.a.name}, about ${f0_(near.km)} km away.`;
     el.append(dir);
-    if (ob.status !== 'ok' || near.km > 60) return;
-    const key = normPlace(near.a.name.split(/[ (]/)[0]);
-    const hits = ob.data.filter((o) => normPlace(o.sector).includes(key)).sort((p, q) => q.date.localeCompare(p.date)).slice(0, 3);
+    if (ob.status !== 'ok') return;
+    // reports are matched by name: the nearest direction (if within 60 km) or the council's own district
+    const keys = [normPlace(u.raion)].concat(near.km <= 60 ? [normPlace(near.a.name.split(/[ (]/)[0])] : []).filter((k) => k.length >= 4);
+    const hits = ob.data.filter((o) => keys.some((k) => normPlace(o.sector).includes(k))).sort((p, q) => q.date.localeCompare(p.date)).slice(0, 3);
     const head = document.createElement('p'); head.className = 'ut-muted';
-    head.textContent = hits.length ? `Latest tactic reports from the ${near.a.name} direction:` : `No tactic reports name the ${near.a.name} direction yet.`;
+    head.textContent = hits.length ? `Latest tactic reports naming ${u.raion} or the ${near.a.name} direction:` : `No tactic reports name ${u.raion} or the ${near.a.name} direction yet.`;
     el.append(head);
     for (const o of hits) {
       const p = document.createElement('p');
