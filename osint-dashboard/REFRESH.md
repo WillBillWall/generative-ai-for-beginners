@@ -56,6 +56,11 @@ artifact whose datasets are attached CSV files. To refresh it:
 | `warspotting_monthly` | `warspotting_monthly.csv` | WarSpotting API (aggregates only; raw records stay in data/raw) |
 | `warspotting_adaptations` | `warspotting_adaptations.csv` | WarSpotting API tags |
 | `claimed_vs_confirmed_live` | `claimed_vs_confirmed_live.csv` | UA MoD + WarSpotting |
+| `oryx_monthly` | `oryx_monthly.csv` | Oryx via leedrake5/Russia-Ukraine (both sides, visually confirmed) |
+| `oryx_ratio_monthly` | `oryx_ratio_monthly.csv` | derived from Oryx |
+| `oryx_latest` | `oryx_latest.csv` | Oryx latest snapshot |
+| `war_fires_daily` | `war_fires_daily.csv` | The Economist war-fire model (CC BY 4.0) |
+| `war_fires_monthly` | `war_fires_monthly.csv` | The Economist war-fire model |
 
 Sources that need network access first (not yet in the refresh): ISW
 (understandingwar.org / criticalthreats.org), WarSpotting (ukr.warspotting.net),

@@ -16,6 +16,8 @@ Live dashboard: https://claude.ai/artifact/TgMA151TVV89RJkWmBQi8q (private until
 | ISW daily assessments | Tactical observations | `ingest/reports.py` and Claude extraction | assessed |
 | RUSI papers | Expert assessments of how tactics evolve (EW, drones, assaults); timeline and context only, never loss counts | `ingest/reports.py` and Claude extraction | assessed |
 | DeepStateMap daily maps ([archive](https://github.com/cyterat/deepstate-map-data)) | Area under Russian control per day since July 2024 | `ingest/territory.py` | mapped (volunteer OSINT) |
+| Oryx daily snapshots ([leedrake5/Russia-Ukraine](https://github.com/leedrake5/Russia-Ukraine)) | Visually confirmed equipment losses for **both** sides, by month documented | `ingest/oryx_daily.py` | visually confirmed |
+| The Economist war-fire model ([repo](https://github.com/TheEconomist/the-economist-war-fire-model), CC BY 4.0) | Satellite-detected war fires per day, split by Ukrainian-held and Russian-held area | `ingest/warfires.py` | modelled from NASA FIRMS |
 | Curated seed | 33 observations Feb 2022–Oct 2026 | `data/seed/observations.csv` | analytic |
 
 ## The data model

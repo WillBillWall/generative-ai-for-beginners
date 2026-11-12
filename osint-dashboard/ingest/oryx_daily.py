@@ -15,10 +15,15 @@ Caveats
   Ukrainian losses probably more so (less footage is published of them).
 - Cumulative counts sometimes fall when Oryx removes duplicates. A fall counts as zero
   losses in that month; the cumulative column keeps the true figure.
-- Each file has an "All Types" total per side and, from 2022-08, a free-text subtotal row
-  ("Losses of Armoured Combat Vehicles [...] - 14203, of which: ..."). Both are skipped;
-  "all" in the ratio table is the sum of the classes.
+- Each file has an "All Types" total per side and, from 2024-09, free-text subtotal rows
+  ("Losses of Armoured Combat Vehicles [...] - 14203, of which: ...", "Losses excluding
+  Recon Drones ..."). All are skipped; "all" in the ratio table is the sum of the classes,
+  which differs from the "All Types" row by a few units on many days.
 - Type names changed over time (see TYPE_CLASS) and some carry stray line breaks.
+- Oryx dropped whole categories twice, which makes the cumulative series step down:
+  anti-tank missiles and shoulder-fired air-defence missiles after 2022-04, and
+  reconnaissance drones and ground robots after 2026-05 (about 860 Russian and 810
+  Ukrainian items left the totals). The clamp keeps these out of the monthly losses.
 - If no snapshot exists for the 1st to 5th of a month, the losses of that month are
   counted in the month before it.
 
@@ -54,23 +59,20 @@ TYPE_CLASS = {name.lower(): cls for name, cls in ORYX_CATEGORIES.items()}
 TYPE_CLASS.update({
     "armoured recovery vehicles": "special_equipment",
     "engineering vehicles": "special_equipment",
+    "communications station": "command_comms",
     "communications stations": "command_comms",
-    "communications vehicles": "command_comms",
-    "command posts": "command_comms",
     "heavy mortars": "artillery",
-    "mortars": "artillery",
-    "self-propelled mortars": "artillery",
     "anti-tank guided missiles": "other",
     "man-portable air defence systems": "air_defense",
     "artillery support vehicles and equipment": "artillery",
     "artillery and missile support vehicles and equipment": "artillery",
     "rocket and missile artillery": "mrl",
     "radars and communications equipment": "ew_radar",
-    "combat unmanned aerial vehicles": "uav",
+    "unmanned ground vehicles": "ugv",
     "logistics trains": "vehicles",
     "trucks and similar vehicles": "vehicles",
     "trucks, vehicles, and jeeps": "vehicles",
-    "trucks, vehicles and jeeps": "vehicles",
+    "trucks, vehicles, jeeps, and trains": "vehicles",
 })
 
 
@@ -80,9 +82,9 @@ def clean_type(type_name: str | None) -> str:
 
 
 def is_total(type_name: str | None) -> bool:
-    """True for the 'All Types' row and the free-text armoured-vehicle subtotal row."""
+    """True for the 'All Types' row, the free-text 'Losses ...' subtotal rows and blank names."""
     name = clean_type(type_name)
-    return not name or name.startswith("all types") or name.startswith("losses of") or "of which" in name
+    return not name or name.startswith(("all types", "losses ")) or "of which" in name
 
 
 def equipment_class(type_name: str | None) -> str | None:
