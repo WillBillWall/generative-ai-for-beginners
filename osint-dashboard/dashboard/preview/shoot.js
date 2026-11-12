@@ -34,6 +34,8 @@ const slug = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
       for (const e of errors) console.log('  ERROR ' + e.split('\n').slice(0, 3).join(' | '));
       problems += errors.length;
 
+      const audit = async (label) => {
+      console.log(`  -- ${label} --`);
       // drawings that are empty or still show only the placeholder dash
       const draws = await page.$$eval('[data-draw]', (els) => els.map((el) => {
         const text = el.textContent.trim();
@@ -52,7 +54,7 @@ const slug = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
         for (const el of document.querySelectorAll('#dash-root *')) {
           if (el.closest('svg') && el.tagName.toLowerCase() !== 'svg') continue;
           const r = el.getBoundingClientRect();
-          if (r.width && r.right > vw + 1 && !el.closest('.ut-tablebox, .ut-timeline')) out.push(`${el.tagName.toLowerCase()}.${el.className && el.className.baseVal === undefined ? el.className : ''} right=${Math.round(r.right)}`);
+          if (r.width && r.right > vw + 1 && !el.closest('.ut-tablebox, .ut-scroll')) out.push(`${el.tagName.toLowerCase()}.${el.className && el.className.baseVal === undefined ? el.className : ''} right=${Math.round(r.right)}`);
         }
         return { scrollW: document.documentElement.scrollWidth, vw, out: out.slice(0, 8) };
       });
@@ -75,6 +77,9 @@ const slug = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
       });
       console.log(`  svg labels cut by the chart edge: ${cut.length}`);
       for (const c of cut.slice(0, 12)) console.log('  cut: ' + c);
+      console.log(`  page height ${await page.evaluate(() => document.documentElement.scrollHeight)} px`);
+      };
+      await audit('as loaded (More detail blocks closed)');
 
       await page.screenshot({ path: path.join(SHOTS, `${tag}-full.png`), fullPage: true });
 
@@ -102,7 +107,17 @@ const slug = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
         const title = await cards[i].evaluate((c) => { const h = c.querySelector('h3'); return h ? h.textContent : (c.closest('section') || {}).id || ''; });
         await cards[i].screenshot({ path: path.join(SHOTS, `${tag}-c${String(i + 1).padStart(2, '0')}-${slug(title)}.png`) });
       }
-      console.log(`  saved ${cards.length} card shots, ${sections.length} section headers`);
+      // open every <details> block: its drawings are redrawn at their real width, then audited and shot
+      const blocks = await page.$$('details');
+      await page.$$eval('details', (ds) => ds.forEach((d) => { d.open = true; }));
+      await page.waitForTimeout(500);
+      await audit('with every More detail block open');
+      for (let i = 0; i < blocks.length; i++) {
+        const id = (await blocks[i].getAttribute('id')) || `details-${i}`;
+        await blocks[i].screenshot({ path: path.join(SHOTS, `${tag}-d${String(i + 1).padStart(2, '0')}-${slug(id)}.png`) });
+      }
+      await page.screenshot({ path: path.join(SHOTS, `${tag}-full-open.png`), fullPage: true });
+      console.log(`  saved ${cards.length} card shots, ${sections.length} section headers, ${blocks.length} opened detail blocks`);
       await ctx.close();
     }
   }
