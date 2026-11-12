@@ -15,3 +15,5 @@
 - **Show geographic data on a map.** A heat table of "directions" made readers picture the geography themselves. When data has places, draw them where they are first, and keep tables as the detail underneath.
 - **Every number on a chart needs a visible label, and the rule for hiding numbers must be obvious.** The direction table hid values under 15 km² and put unlabelled totals beside the names. Give totals their own labelled column, show all non-zero values, and add a key.
 - **Check a source's real fields before describing them.** I told the user WarSpotting covers both sides and tags the weapon that hit each vehicle. Neither was true: it covers Russian losses only, and its tags mostly describe the vehicle. Inspect a sample of real records (field coverage, value distribution) before promising what a source can show.
+- **Render before publishing.** dashboard/preview renders the page locally with real data; run build_preview.py + shoot.js + interact.js after every page change and look at the screenshots.
+- **One colour, one meaning, page-wide** (amber = Russia, blue = Ukraine; stages and highlights use other colours).

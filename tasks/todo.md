@@ -192,3 +192,10 @@ Question: which tactics went with territory changing hands, and who held the adv
 - [x] New tactic types: loitering_munition, logistics_hub_strike. New metrics: Lancet/Molniya per week (7,947), FPV hits armour survives (10-15)
 - [x] Persistence: coded rows saved to the dashboard database collection `coded` and restored at the start of each run (restore-extracted), so a refused push loses nothing
 - [x] Runbook steps 0/1b/1c/1d and the scheduled-task prompt updated
+
+# Interactive map, review and new sources (2026-11-12)
+- [x] Map: fixed-height viewport with d3 zoom (drag, pinch, Ctrl+scroll, +/−/Reset), district names when zoomed, click a council → details panel (share at 5 dates, change, nearest direction, latest matching reports). Tested in the preview.
+- [x] Review agent built dashboard/preview (mock dash + real data; shoot.js, interact.js) and reviewed every card; then implemented: one meaning per colour (amber = Russia, blue = Ukraine), new section order (timeline third, map under Front line), six detail cards collapsed in <details>, misleading displays fixed, phone layout, shorter notes, US spelling, one date format. Page 25–31% shorter.
+- [x] Research agent ranked extra sources. Added now: Oryx both-sides daily snapshots (leedrake5), The Economist war-fire model. Not added (need hosts): Kaggle missile/Shahed dataset, ISW ArcGIS layers, Mediazona; VIINA needs repo LFS access.
+- [x] Published page v19 + datasets oryx_monthly, oryx_latest, war_fires_monthly. Observation-derived datasets left to the daily run (its copy has the coded rows).
+- Known: counter ring vs "spreading" colours are close; amber label contrast in light theme; map-redraw flag (30 km) marks 6 of 28 months.

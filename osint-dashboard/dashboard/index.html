@@ -257,7 +257,12 @@
       </div>
     </div>
 
-    <!-- SLOT:war-fires -->
+    <div class="ut-card" id="war-fires">
+      <h3>Where the fires of war are burning</h3>
+      <p class="ut-note">Share of satellite-detected war fires that fall in Russian-held territory, by month (3-month average; The Economist's model on NASA fire data). It is a measure of where shells, bombs and drones are landing that relies on neither side's claims. The line is dotted in winter, when cloud and few fires make it unreliable.</p>
+      <p class="ut-note" data-draw="fires-summary" data-source="war_fires_monthly">—</p>
+      <div class="ut-chart" data-draw="fires-share" data-source="war_fires_monthly"></div>
+    </div>
 
     <div class="ut-card" id="front-map">
       <h3>Map: how each local area is changing</h3>
@@ -302,7 +307,16 @@
   <section class="ut-section" id="reliability">
     <h2 class="ut-h2">How reliable are the counts</h2>
 
-    <!-- SLOT:oryx-both-sides -->
+    <div class="ut-card" id="oryx-both">
+      <h3>Photo-confirmed losses on both sides (Oryx)</h3>
+      <p class="ut-note">Equipment losses with photo or video evidence, by the month Oryx documented them (3-month average): Russia in amber, Ukraine in blue. This is the only series here that covers Ukrainian losses. It reflects what footage gets published as well as what is lost, so read the trend, not the ratio.</p>
+      <p class="ut-note" data-draw="oryx-summary" data-source="oryx_latest">—</p>
+      <div class="ut-grid4">
+        <div><h3>Tanks</h3><div class="ut-mini ut-mini-tall" data-draw="oryx-lines" data-cls="tank" data-source="oryx_monthly"></div></div>
+        <div><h3>Armored vehicles</h3><div class="ut-mini ut-mini-tall" data-draw="oryx-lines" data-cls="afv" data-source="oryx_monthly"></div></div>
+        <div><h3>Artillery</h3><div class="ut-mini ut-mini-tall" data-draw="oryx-lines" data-cls="artillery" data-source="oryx_monthly"></div></div>
+      </div>
+    </div>
 
     <div class="ut-card" id="claims">
       <h3>Russian losses claimed by Ukraine's ministry vs photo-confirmed by WarSpotting, war to date</h3>
@@ -506,6 +520,8 @@
       <li>Tactic reports are paraphrased from ISW, RUSI and news coverage. RUSI and ISW items are expert assessments that explain how and why tactics change; they place tactics on the timeline and never feed the loss counts. Many ISW items were read through news reports of its assessments, and are drawn as hollow markers.</li>
       <li>On the timeline, a report about both sides appears in both sides' rows. A row steps back to an earlier stage only when a report is about a new sector, where the tactic is starting again. "Countered" is separate from how widely a tactic is used.</li>
       <li>ISW and RUSI write from a Western perspective with significant Ukrainian access; Russian-side tactics are often described through Ukrainian reporting.</li>
+      <li>War fires are The Economist's statistical estimate of which satellite-detected fires are war-related (NASA FIRMS data, CC BY 4.0). Cloud hides fires and summer multiplies them, so only the share on each side of the line is shown, not the count.</li>
+      <li>Oryx counts are by the date a loss was documented, not when it happened, and Oryx itself says Ukrainian losses are probably undercounted. In June 2026 Oryx stopped counting reconnaissance drones and ground robots.</li>
       <li>Territory comes from DeepStateMap, a Ukrainian volunteer project. Its map is close to ISW's but not identical, and some day-to-day changes are redrawing rather than fighting. The council map uses Ukraine's pre-2020 village and town council boundaries.</li>
       <li>Trend fits and trend-change months are statistics on claimed numbers. A change can reflect what the ministry counts as much as the battlefield, and the adaptation-speed figures rest on a few dozen reports. Comparisons before and after a tactic report leave out RUSI reviews, because they describe the year before.</li>
       <li>Unit names are recorded only where a source gives them, and attributions sometimes conflict.</li>
@@ -796,7 +812,7 @@
       .attr('stroke', (v) => (v === 1 ? 'var(--cds-chart-reference)' : 'var(--cds-chart-grid)'));
     svg.append('g').selectAll('text').data(ticks).join('text').attr('x', m.l - 6).attr('y', (v) => y(v) + 4).attr('text-anchor', 'end').text((v) => `×${d3.format(',')(v)}`);
     // the lines start at x1 on the left, so the reference label sits at the right end where they have moved away
-    svg.append('text').attr('x', W - m.r - 4).attr('y', y(1) - 5).attr('text-anchor', 'end').text('spring 2022 level');
+    if (W >= 520) svg.append('text').attr('x', W - m.r - 4).attr('y', y(1) - 5).attr('text-anchor', 'end').text('spring 2022 level');
     svg.append('g').selectAll('text').data(x.ticks(d3.utcYear.every(1))).join('text').attr('x', x).attr('y', H - 6).attr('text-anchor', 'middle').text(d3.utcFormat('%Y'));
     const ends = [];
     for (const sr of SERIES) {
@@ -1230,13 +1246,15 @@
     const max = d3.max(rows, (r) => Math.abs(r.v)) || 1;
     const pad = narrow ? 92 : 104;                                   // room for "+11.4 km²/day" beyond the longest bar
     const x = d3.scaleLinear([-max, max], [left + pad, W - pad]);
-    svg.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', 0).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-axis)');
+    // on a narrow screen the zero line is drawn beside each bar only, so it does not cross the names
+    if (!narrow) svg.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', 0).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-axis)');
     svg.append('text').attr('x', x(0) - 8).attr('y', H - 6).attr('text-anchor', 'end').text('← Russian gains slowed');
     svg.append('text').attr('x', x(0) + 8).attr('y', H - 6).text('sped up →');
     const t = tip_(el);
     const by = narrow ? 22 : 6, bh = narrow ? 12 : lane - 12;
     const g = svg.append('g').selectAll('g').data(rows).join('g').attr('transform', (r, i) => `translate(0,${m.t + i * lane})`);
     g.append('rect').attr('x', 0).attr('y', 0).attr('width', W).attr('height', lane).attr('fill', 'transparent');
+    if (narrow) g.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', by - 3).attr('y2', by + bh + 3).attr('stroke', 'var(--cds-chart-reference)');
     g.append('rect').attr('x', (r) => Math.min(x(0), x(r.v))).attr('width', (r) => Math.max(2, Math.abs(x(r.v) - x(0)))).attr('y', by).attr('height', bh).attr('rx', 2)
       .attr('fill', C.fg).attr('opacity', (r) => (r.w >= 2 ? 0.35 : 0.85));
     g.append('text').attr('class', 'ut-strong').attr('x', (r) => (r.v >= 0 ? x(r.v) + 5 : x(r.v) - 5)).attr('y', by + bh / 2 + 4)
@@ -1711,6 +1729,89 @@
     const settled = rows.length - 1 - SETTLE_MONTHS;
     miniBars(el, rows, { fmt: f0_, firstLabel: (r) => r.k.slice(0, 4), latestIdx: settled, fadeFrom: settled + 1, latestWord: 'Latest settled month',
       tipKey: (r) => mon(r.k) + (rows.indexOf(r) > settled ? ' · still filling in' : ''), tipVal: (r) => `${f0_(r.v)} photo-confirmed` });
+  });
+
+  // --- Oryx: both sides -------------------------------------------------------
+  dash.draw('oryx-summary', (el) => {
+    const d = dash.data('oryx_latest');
+    if (d.status !== 'ok' || !d.data.length) { el.textContent = '—'; return; }
+    const tot = (side, cls) => d3.sum(d.data.filter((r) => r.side === side && (!cls || r.equipment_class === cls)), (r) => Number(r.total));
+    el.textContent = `As of ${day_(d.data[0].as_of)}, Oryx has documented ${f0_(tot('RU'))} Russian and ${f0_(tot('UA'))} Ukrainian equipment losses, including ${f0_(tot('RU', 'tank'))} Russian and ${f0_(tot('UA', 'tank'))} Ukrainian tanks.`;
+  });
+
+  dash.draw('oryx-lines', (el) => {
+    el.replaceChildren();
+    const d = dash.data('oryx_monthly');
+    if (d.status !== 'ok') { el.textContent = '—'; return; }
+    const cls = el.dataset.cls, C = window.utColor;
+    const months = [...new Set(d.data.map((r) => r.month))].sort().slice(0, -1);        // drop the current, partial month
+    const get = (side) => { const m = new Map(d.data.filter((r) => r.side === side && r.equipment_class === cls).map((r) => [r.month, Number(r.lost_in_month)]));
+      return months.map((mo, i) => ({ m: mo, v: d3.mean(months.slice(Math.max(0, i - 2), i + 1), (x) => m.get(x) || 0) })); };
+    const series = [{ side: 'RU', c: C.ru, pts: get('RU') }, { side: 'UA', c: C.ua, pts: get('UA') }];
+    const W = el.clientWidth || 260, H = 150, m = { t: 20, r: 6, b: 18, l: 30 };
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const x = d3.scalePoint(months, [m.l, W - m.r]);
+    const y = d3.scaleLinear([0, d3.max(series, (sr) => d3.max(sr.pts, (p) => p.v)) || 1], [H - m.b, m.t]).nice(3);
+    svg.append('g').selectAll('line').data(y.ticks(3)).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('text').data(y.ticks(3)).join('text').attr('x', m.l - 4).attr('y', (v) => y(v) + 4).attr('text-anchor', 'end').text(d3.format(','));
+    svg.append('text').attr('x', m.l).attr('y', H - 4).text(months[0].slice(0, 4));
+    svg.append('text').attr('x', W - m.r).attr('y', H - 4).attr('text-anchor', 'end').text(months.at(-1).slice(0, 4));
+    for (const sr of series) svg.append('path').datum(sr.pts).attr('fill', 'none').attr('stroke', sr.c).attr('stroke-width', 2).attr('stroke-linejoin', 'round')
+      .attr('d', d3.line((p) => x(p.m), (p) => y(p.v)));
+    const last = series.map((sr) => `${window.utSide(sr.side)} ${f0_(sr.pts.at(-1).v)}`).join(' · ');
+    svg.append('text').attr('class', 'ut-strong').attr('x', W - m.r).attr('y', 12).attr('text-anchor', 'end').text(`Now, per month: ${last}`);
+    const t = tip_(el);
+    svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.l - m.r).attr('height', H - m.t - m.b).attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        const [px] = d3.pointer(ev);
+        const i = Math.max(0, Math.min(months.length - 1, Math.round((px - m.l) / ((W - m.l - m.r) / (months.length - 1)))));
+        showTip(t, el, ev, `${mon(months[i])} (3-month average)`, series.map((sr) => `${window.utSide(sr.side)}: ${f1_(sr.pts[i].v)} a month`));
+      }).on('pointerleave', () => { t.hidden = true; });
+  });
+
+  // --- War fires --------------------------------------------------------------
+  const fireRows = () => {
+    const d = dash.data('war_fires_monthly');
+    if (d.status !== 'ok') return null;
+    const raw = d.data.filter((r) => window.utTrue(r.complete)).map((r) => ({ m: r.month, days: Number(r.days), all: Number(r.war_fires_per_day) * Number(r.days), ru: Number(r.ru_held_per_day) * Number(r.days) }));
+    return raw.map((r, i) => { const win = raw.slice(Math.max(0, i - 2), i + 1), all = d3.sum(win, (w) => w.all), days = d3.sum(win, (w) => w.days);
+      return { m: r.m, share: all > 0 ? d3.sum(win, (w) => w.ru) / all : null, perDay: all / days }; });
+  };
+  const FIRE_MIN = 30;                                  // 3-month average war fires a day below which the share is too noisy
+  dash.draw('fires-summary', (el) => {
+    const rows = fireRows();
+    if (!rows || !rows.length) { el.textContent = '—'; return; }
+    const solid = rows.filter((r) => r.share != null && r.perDay >= FIRE_MIN);
+    const now = solid.at(-1), prev = solid.find((r) => r.m === `${Number(now.m.slice(0, 4)) - 1}${now.m.slice(4)}`);
+    const pc = (v) => `${f0_(v * 100)}%`;
+    el.textContent = `In the three months to ${mon(now.m)}, ${pc(now.share)} of war fires were in Russian-held territory`
+      + (prev ? `, against ${pc(prev.share)} a year earlier` : '') + `. ${now.share > 0.5 ? 'More of the destruction is now falling on the Russian side of the line than on the Ukrainian side.' : 'Most of the destruction is still falling on the Ukrainian side of the line.'}`;
+  });
+  dash.draw('fires-share', (el) => {
+    el.replaceChildren();
+    const rows = fireRows();
+    if (!rows || !rows.length) { el.textContent = '—'; return; }
+    const pts = rows.filter((r) => r.share != null);
+    const W = el.clientWidth || 700, H = 240, m = { t: 14, r: 12, b: 22, l: 44 };
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const x = d3.scalePoint(pts.map((r) => r.m), [m.l, W - m.r]);
+    const y = d3.scaleLinear([0, 1], [H - m.b, m.t]);
+    svg.append('g').selectAll('line').data([0, 0.25, 0.5, 0.75, 1]).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y)
+      .attr('stroke', (v) => (v === 0.5 ? 'var(--cds-chart-reference)' : 'var(--cds-chart-grid)'));
+    svg.append('g').selectAll('text').data([0, 0.5, 1]).join('text').attr('x', m.l - 6).attr('y', (v) => y(v) + 4).attr('text-anchor', 'end').text((v) => `${v * 100}%`);
+    svg.append('text').attr('x', m.l + 4).attr('y', m.t + 10).text('more in Russian-held territory ↑');
+    svg.append('text').attr('x', m.l + 4).attr('y', H - m.b - 6).text('more in Ukrainian-held territory ↓');
+    svg.append('g').selectAll('text.yr').data(pts.filter((r) => r.m.endsWith('-01'))).join('text').attr('x', (r) => x(r.m)).attr('y', H - 6).attr('text-anchor', 'middle').text((r) => r.m.slice(0, 4));
+    const line = d3.line((r) => x(r.m), (r) => y(r.share));
+    svg.append('path').datum(pts).attr('fill', 'none').attr('stroke', window.utColor.fg).attr('stroke-width', 1.5).attr('stroke-dasharray', '2 4').attr('opacity', 0.5).attr('d', line);
+    svg.append('path').datum(pts).attr('fill', 'none').attr('stroke', window.utColor.fg).attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('d', line.defined((r) => r.perDay >= FIRE_MIN));
+    const t = tip_(el);
+    svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.l - m.r).attr('height', H - m.t - m.b).attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        const [px] = d3.pointer(ev);
+        const r = pts[Math.max(0, Math.min(pts.length - 1, Math.round((px - m.l) / ((W - m.l - m.r) / (pts.length - 1)))))];
+        showTip(t, el, ev, `Three months to ${mon(r.m)}`, [`${f0_(r.share * 100)}% of war fires in Russian-held territory`, `${f0_(r.perDay)} war fires a day${r.perDay < FIRE_MIN ? ' (too few to rely on)' : ''}`]);
+      }).on('pointerleave', () => { t.hidden = true; });
   });
 
   dash.draw('territory', (el) => {

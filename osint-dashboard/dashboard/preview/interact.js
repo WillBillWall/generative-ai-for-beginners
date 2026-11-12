@@ -15,6 +15,14 @@ const SHOTS = path.join(__dirname, 'shots');
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
   await page.goto(PAGE);
   await page.waitForSelector('html[data-preview-ready]');
+  // "More detail" blocks start closed. Opening one by its summary must redraw its charts at their real width.
+  const widths = async (sel) => page.$eval(sel, (el) => ({ box: el.clientWidth, vb: Number((el.querySelector('svg').getAttribute('viewBox') || '').split(' ')[2]) }));
+  const closed = await page.$$eval('details', (d) => d.filter((x) => x.open).length);
+  await page.click('#trends > summary'); await page.waitForTimeout(300);
+  const gw = await widths('[data-draw="growth"]');
+  console.log(`${closed === 0 && Math.abs(gw.box - gw.vb) < 2 ? 'PASS' : 'FAIL'}  details: closed on load, redrawn at real width when opened  — ${closed} open on load; growth box ${gw.box}px, drawn ${gw.vb}px`);
+  for (const s of await page.$$('details:not([open]) > summary')) { await s.click(); }
+  await page.waitForTimeout(400);
   const log = (name, ok, extra) => console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${extra ? '  — ' + extra : ''}`);
   const shot = async (sel, name) => { const el = await page.$(sel); if (el) await el.screenshot({ path: path.join(SHOTS, `ix-${name}.png`) }); };
   const tipText = (sel) => page.$eval(sel, (el) => { const t = el.querySelector('.ut-tip'); return t && !t.hidden ? t.innerText.replace(/\n/g, ' | ') : null; });
@@ -37,13 +45,17 @@ const SHOTS = path.join(__dirname, 'shots');
   t = await hoverEl('[data-draw="advantage"]', 'g:last-of-type rect', 10); log('tooltip: pace/cost chart', !!t, t);
   t = await hoverEl('[data-draw="before-after"]', 'g > g', 0); log('tooltip: before/after bar', !!t, t);
   t = await hoverEl('[data-draw="direction-heat"]', 'rect', 14); log('tooltip: direction heat cell', !!t, t);
-  t = await hoverEl('[data-draw="metric"][data-metric="glide_bombs_per_month"]', 'circle', 0); log('tooltip: metric dot', !!t, t);
+  const latestRows = await page.$$eval('[data-draw="metrics-latest"] tr', (r) => r.length);
+  log('metrics: latest-figure list filled', latestRows >= 8, `${latestRows} measures`);
+  const stages = await page.$$eval('[data-draw="stage-legend"] span', (s) => s.map((x) => x.textContent));
+  log('timeline legend lists only stages in the data', stages.length > 0 && !stages.includes('Resurgent'), stages.join(', '));
   t = await hoverEl('[data-draw="growth"]', 'g > g', 5); log('tooltip: growth row', !!t, t);
   t = await hoverEl('[data-draw="shift"][data-cls="tank"]', 'g[style] rect', 0); log('tooltip: shift marker', !!t, t); await shot('[data-draw="shift"][data-cls="tank"]', 'tip-shift');
   t = await hoverEl('[data-draw="adapt"]', 'rect', 0); log('tooltip: adaptation bar', !!t, t);
   t = await hoverEl('[data-draw="armour-adapt"]', 'g:last-of-type rect', 40); log('tooltip: armour adaptation', !!t, t);
   t = await hoverEl('[data-draw="claims"]', 'g > g', 2); log('tooltip: claims row', !!t, t);
-  t = await hoverEl('[data-draw="tank-age"]', 'rect', 2); log('tooltip: tank age bar', !!t, t);
+  const decades = await page.$$eval('[data-draw="tank-age"] svg g g', (g) => g.map((x) => x.textContent));
+  log('tank age: every decade labelled, no "Latest"', decades.length === 8 && !decades.join(' ').includes('Latest'), decades.slice(0, 3).join(' / '));
 
   // --- timeline chips and marker click ---
   const lanes = () => page.$$eval('[data-draw="timeline"] circle', (c) => c.length);
@@ -70,9 +82,9 @@ const SHOTS = path.join(__dirname, 'shots');
   const rows = () => page.$$eval('[data-draw="obs-table"] tr', (r) => r.length);
   const n0 = await rows();
   await page.fill('#ut-search', 'fiber'); await page.waitForTimeout(80); const n1 = await rows();
-  await page.fill('#ut-search', 'zzzz'); await page.waitForTimeout(80); const n2 = await rows();
+  await page.fill("#ut-search", "zzzz"); await page.waitForTimeout(80); const n2 = await rows();
   await page.fill('#ut-search', ''); await page.waitForTimeout(80); const n3 = await rows();
-  log('source log search', n1 > 0 && n1 < n0 && n2 === 0 && n3 === n0, `all=${n0} "fiber"=${n1} "zzzz"=${n2} (no "no results" message: ${n2 === 0 ? 'table just goes blank' : ''})`);
+  log('source log search', n1 > 0 && n1 < n0 && n2 === 1 && n3 === n0, `all=${n0} "fiber"=${n1} "zzzz" shows: ${await page.$eval('[data-draw="obs-table"]', (e) => e.textContent.slice(0, 60))}`);
 
   // --- map ---
   const map = '[data-draw="front-map"]';
