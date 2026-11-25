@@ -56,7 +56,7 @@ month,equipment_class,destroyed,damaged,abandoned,captured,total
 2022-06,afv,125,4,0,18,147
 2022-06,air_defense,3,0,0,0,3
 2022-06,aircraft,3,1,0,0,4
-2022-06,artillery,18,0,0,2,20
+2022-06,artillery,20,0,0,2,22
 2022-06,command_comms,8,0,0,0,8
 2022-06,helicopter,4,0,0,0,4
 2022-06,mrl,19,0,0,0,19
@@ -193,7 +193,7 @@ month,equipment_class,destroyed,damaged,abandoned,captured,total
 2023-05,afv,85,8,0,7,100
 2023-05,air_defense,8,3,0,0,11
 2023-05,aircraft,2,0,0,0,2
-2023-05,artillery,26,7,0,0,33
+2023-05,artillery,27,7,0,0,34
 2023-05,command_comms,4,0,0,0,4
 2023-05,ew_radar,2,1,0,0,3
 2023-05,helicopter,4,0,0,0,4
@@ -537,7 +537,7 @@ month,equipment_class,destroyed,damaged,abandoned,captured,total
 2025-09,special_equipment,3,0,0,0,3
 2025-09,tank,26,1,2,0,29
 2025-09,uav,5,0,0,13,18
-2025-09,vehicles,93,2,1,0,96
+2025-09,vehicles,94,2,1,0,97
 2025-10,afv,109,1,17,0,127
 2025-10,air_defense,6,0,0,0,6
 2025-10,artillery,4,1,0,0,5
@@ -586,7 +586,7 @@ month,equipment_class,destroyed,damaged,abandoned,captured,total
 2026-02,air_defense,1,3,0,0,4
 2026-02,artillery,5,0,0,0,5
 2026-02,ew_radar,2,0,0,0,2
-2026-02,mrl,14,1,0,0,15
+2026-02,mrl,15,1,0,0,16
 2026-02,naval,1,0,0,0,1
 2026-02,other,7,0,0,0,7
 2026-02,special_equipment,1,1,0,0,2
@@ -690,11 +690,14 @@ month,equipment_class,destroyed,damaged,abandoned,captured,total
 2026-10,special_equipment,1,0,0,0,1
 2026-10,tank,1,0,0,1,2
 2026-10,vehicles,61,2,0,0,63
-2026-11,afv,1,0,0,0,1
-2026-11,air_defense,1,0,0,0,1
-2026-11,artillery,2,0,0,0,2
-2026-11,mrl,3,0,0,0,3
+2026-11,afv,6,0,1,0,7
+2026-11,air_defense,2,0,0,0,2
+2026-11,aircraft,0,1,0,0,1
+2026-11,artillery,2,1,0,0,3
+2026-11,ew_radar,0,1,0,0,1
+2026-11,mrl,5,0,0,0,5
+2026-11,naval,1,0,0,0,1
 2026-11,other,1,0,0,0,1
-2026-11,special_equipment,1,0,0,0,1
-2026-11,tank,2,0,0,0,2
-2026-11,vehicles,15,0,0,0,15
+2026-11,special_equipment,2,0,0,0,2
+2026-11,tank,3,0,0,0,3
+2026-11,vehicles,23,0,0,0,23
